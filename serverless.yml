@@ -1,0 +1,85 @@
+service: serverless-1
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+constructs:
+  jobs:
+    type: queue
+    worker:
+      handler: build/consumers/index.handler
+functions:
+  getConfigs:
+    handler: build/api/configs/list.handler
+    events:
+      - httpApi:
+          path: /configs
+          method: get
+  getConfigById:
+    handler: build/api/configs/getById.handler
+    events:
+      - httpApi:
+          path: /configs/{id}
+          method: get
+  updateConfig:
+    handler: build/api/configs/upsert.handler
+    events:
+      - httpApi:
+          path: /configs/{id}
+          method: put
+  deliverySolutionsWebHoook:
+    handler: build/webhooks/deliverySolutionsWebHoook.handler
+    events:
+      - httpApi:
+          path: /webhooks/ds
+          method: post
+    environment:
+      QUEUE_URL: ${construct:jobs.queueUrl},
+      DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
+  kiboWebHoook:
+    handler: build/webhooks/kiboWebHoook.handler
+    events:
+      - httpApi:
+          path: /webhooks/kibo
+          method: post
+    environment:
+      QUEUE_URL: ${construct:jobs.queueUrl},
+      DYNAMODB_TABLE:: ${self:provider.environment.DYNAMODB_TABLE}
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+# plugins:
+#   - serverless-esbuild
+plugins:
+  - serverless-lift
+  - serverless-dynamodb-local
+
+

@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Serverless Offline",
+            "program": "${workspaceRoot}/node_modules/serverless/bin/serverless",
+            "args": ["offline", "start", "--httpPort", "4000", "--noTimeout"],
+            "sourceMaps": true,
+            "runtimeArgs": ["--lazy"],
+            "outFiles": ["${workspaceRoot}/.webpack/**/*.js"],
+            "protocol": "inspector",
+            "runtimeExecutable": "node",
+            "env": {
+                
+                "QUEU_URL":"https://sqs.us-east-1.amazonaws.com/542216209467/serverless-1-dev-jobs",
+                "DYNAMODB_TABLE": "serverless-1-dev"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/build/api/configs/upsert.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ]
+        }
+    ]
+}
