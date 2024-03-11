@@ -9,24 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
-const tenantConfigurationService_1 = require("../../services/tenantConfigurationService");
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
-    const tenantConfigService = new tenantConfigurationService_1.TenantConfigService();
-    console.log('list');
-    try {
-        const configs = yield tenantConfigService.getAllConfigs();
-        return {
-            statusCode: 200,
-            body: JSON.stringify(configs),
-        };
+exports.DeliverySolutionsService = void 0;
+const axios_1 = require("axios");
+class DeliverySolutionsService {
+    constructor(tenantConfiguration) {
+        this.tenantConfiguration = tenantConfiguration;
     }
-    catch (error) {
-        console.error(error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'An error occurred when getting the config' }),
-        };
+    createOrder(order) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = `${this.tenantConfiguration.dsCredentials.api}/api/v2/order/placeorderasync`;
+            const headers = {
+                'tenantId': this.tenantConfiguration.dsTenant,
+                'x-api-key': this.tenantConfiguration.dsCredentials.apiKey
+            };
+            const response = yield axios_1.default.post(url, order, { headers });
+            return response.data;
+        });
     }
-});
-exports.handler = handler;
+}
+exports.DeliverySolutionsService = DeliverySolutionsService;

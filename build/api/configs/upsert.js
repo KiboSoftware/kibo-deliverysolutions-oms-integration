@@ -10,10 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const tenantConfig_1 = require("../../util/tenantConfig");
+const tenantConfigurationService_1 = require("../../services/tenantConfigurationService");
 const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const tenantConfigService = new tenantConfig_1.TenantConfigService();
+    const tenantConfigService = new tenantConfigurationService_1.TenantConfigService();
     const tenantConfig = JSON.parse(event.body || '{}');
     const id = ((_a = event.pathParameters) === null || _a === void 0 ? void 0 : _a.id) || '';
     if (id !== tenantConfig.id) {

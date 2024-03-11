@@ -10,9 +10,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
-    const detail = event.detail;
-    // Process the event detail
-    console.log(event, event.detail.body);
+// kiboWebhook
+const aws_sdk_1 = require("aws-sdk");
+const eventBridge = new aws_sdk_1.EventBridge();
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    const headers = event.headers;
+    const body = JSON.parse(event.body || '');
+    const busName = process.env.EVENT_BUS_NAME || 'default';
+    yield eventBridge.putEvents({
+        Entries: [
+            {
+                Source: 'kibo',
+                DetailType: body.topic,
+                Detail: JSON.stringify({ body, headers }),
+                EventBusName: busName,
+            },
+        ],
+    }).promise();
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Webhook processed successfully' }),
+    };
 });
 exports.handler = handler;

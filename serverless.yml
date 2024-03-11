@@ -6,6 +6,7 @@ provider:
   runtime: nodejs18.x
   environment:
     DYNAMODB_TABLE: ${self:service}-${sls:stage}
+    EVENTBRIDGE_BUS_NAME: ${self:service}-${sls:stage}
   iam:
     role:
       statements:
@@ -18,11 +19,31 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-constructs:
-  jobs:
-    type: queue
-    worker:
-      handler: build/consumers/index.handler
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource: "arn:aws:events:${aws:region}:*:event-bus/${self:provider.environment.EVENTBRIDGE_BUS_NAME}"
+        
+# constructs:
+#   dsEvents:
+#     type: webhook
+#     path: /webhooks/ds
+#     eventType: 'ds'
+#     method: POST
+#     insecure: true
+    
+
+#   kiboEvents:
+#     type: webhook
+#     path: /webhooks/kibo
+#     eventType: 'kibo'
+#     method: POST
+#     insecure: true
+
+  # jobs:
+  #   type: queue
+  #   worker:
+  #     handler: build/consumers/index.handler
 functions:
   getConfigs:
     handler: build/api/configs/list.handler
@@ -42,24 +63,75 @@ functions:
       - httpApi:
           path: /configs/{id}
           method: put
-  deliverySolutionsWebHoook:
-    handler: build/webhooks/deliverySolutionsWebHoook.handler
+  dsWebhook:
+    handler: build/producers/deliverySolutions.handler
     events:
-      - httpApi:
+      - http:
           path: /webhooks/ds
           method: post
-    environment:
-      QUEUE_URL: ${construct:jobs.queueUrl},
-      DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
-  kiboWebHoook:
-    handler: build/webhooks/kiboWebHoook.handler
+  kiboWebhook:
+    handler: build/producers/kibo.handler
     events:
-      - httpApi:
+      - http:
           path: /webhooks/kibo
           method: post
-    environment:
-      QUEUE_URL: ${construct:jobs.queueUrl},
-      DYNAMODB_TABLE:: ${self:provider.environment.DYNAMODB_TABLE}
+  dsEventHandler:
+    handler: build/consumers/deliverySolutions.handler
+    events:
+      - eventBridge:
+          eventBus: ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
+          pattern:
+            source:
+              - ds
+  kiboEventHandler:
+    handler: build/consumers/kibo.handler
+    events:
+      - eventBridge:
+          eventBus:  ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
+          pattern:
+            source:
+              - kibo
+  # kiboEventHandler:
+  #       handler: build/consumers/index.handler
+  #       events:
+  #           -   eventBridge:
+  #                   eventBus: ${construct:kiboEvents.busName}
+  #                   pattern:
+  #                       source:
+  #                           # filter all events received on stripe webhook
+  #                           - kiboEvents
+  #                       # detail-type:
+  #                       #     - invoice.paid
+  # dsEventHandler:
+  #       handler: build/consumers/index.handler
+  #       events:
+  #           -   eventBridge:
+  #                   eventBus: ${construct:dsEvents.busName}
+  #                   pattern:
+  #                       source:
+  #                           # filter all events received on stripe webhook
+  #                           - kiboEvents
+  #                       # detail-type:
+  #                       #     - invoice.paid
+
+  # deliverySolutionsWebHoook:
+  #   handler: build/webhooks/deliverySolutionsWebHoook.handler
+  #   events:
+  #     - httpApi:
+  #         path: /webhooks/ds
+  #         method: post
+  #   environment:
+  #     QUEUE_URL: ${construct:jobs.queueUrl},
+  #     DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
+  # kiboWebHoook:
+  #   handler: build/webhooks/kiboWebHoook.handler
+  #   events:
+  #     - httpApi:
+  #         path: /webhooks/kibo
+  #         method: post
+  #   environment:
+  #     QUEUE_URL: ${construct:jobs.queueUrl},
+  #     DYNAMODB_TABLE:: ${self:provider.environment.DYNAMODB_TABLE}
 resources:
   Resources:
     TodosDynamoDbTable:
