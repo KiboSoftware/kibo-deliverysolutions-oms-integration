@@ -90,48 +90,7 @@ functions:
           eventBus:  ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
           pattern:
             source:
-              - kibo
-  # kiboEventHandler:
-  #       handler: build/consumers/index.handler
-  #       events:
-  #           -   eventBridge:
-  #                   eventBus: ${construct:kiboEvents.busName}
-  #                   pattern:
-  #                       source:
-  #                           # filter all events received on stripe webhook
-  #                           - kiboEvents
-  #                       # detail-type:
-  #                       #     - invoice.paid
-  # dsEventHandler:
-  #       handler: build/consumers/index.handler
-  #       events:
-  #           -   eventBridge:
-  #                   eventBus: ${construct:dsEvents.busName}
-  #                   pattern:
-  #                       source:
-  #                           # filter all events received on stripe webhook
-  #                           - kiboEvents
-  #                       # detail-type:
-  #                       #     - invoice.paid
-
-  # deliverySolutionsWebHoook:
-  #   handler: build/webhooks/deliverySolutionsWebHoook.handler
-  #   events:
-  #     - httpApi:
-  #         path: /webhooks/ds
-  #         method: post
-  #   environment:
-  #     QUEUE_URL: ${construct:jobs.queueUrl},
-  #     DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
-  # kiboWebHoook:
-  #   handler: build/webhooks/kiboWebHoook.handler
-  #   events:
-  #     - httpApi:
-  #         path: /webhooks/kibo
-  #         method: post
-  #   environment:
-  #     QUEUE_URL: ${construct:jobs.queueUrl},
-  #     DYNAMODB_TABLE:: ${self:provider.environment.DYNAMODB_TABLE}
+              - kibo  
 resources:
   Resources:
     TodosDynamoDbTable:
@@ -153,5 +112,6 @@ resources:
 plugins:
   - serverless-lift
   - serverless-dynamodb-local
+  - serverless-offline
 
 

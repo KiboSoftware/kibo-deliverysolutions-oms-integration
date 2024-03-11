@@ -39,3 +39,4 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.handler = handler;
+//# sourceMappingURL=upsert.js.map

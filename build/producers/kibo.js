@@ -15,23 +15,29 @@ const aws_sdk_1 = require("aws-sdk");
 const eventBridge = new aws_sdk_1.EventBridge();
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const headers = event.headers;
-    const body = JSON.parse(event.body || '');
-    const busName = process.env.EVENTBRIDGE_BUS_NAME || 'default';
-    const eventType = body.topic || 'unknown';
-    const resp = yield eventBridge.putEvents({
+    const body = JSON.parse(event.body || "");
+    const busName = process.env.EVENTBRIDGE_BUS_NAME || "default";
+    const eventType = body.topic || "unknown";
+    const resp = yield eventBridge
+        .putEvents({
         Entries: [
             {
-                Source: 'kibo',
+                Source: "kibo",
                 DetailType: eventType,
                 Detail: JSON.stringify({ body, headers }),
                 EventBusName: busName,
             },
         ],
-    }).promise();
-    console.log('kiboWebhook', busName, resp);
+    })
+        .promise();
+    console.log("kiboWebhook", busName, resp);
     return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'Webhook processed successfully', resp: resp }),
+        body: JSON.stringify({
+            message: "Webhook processed successfully",
+            resp: resp,
+        }),
     };
 });
 exports.handler = handler;
+//# sourceMappingURL=kibo.js.map

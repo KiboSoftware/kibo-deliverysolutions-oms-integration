@@ -16,3 +16,4 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
     console.log(event, event.detail.body);
 });
 exports.handler = handler;
+//# sourceMappingURL=deliverySolutions.js.map

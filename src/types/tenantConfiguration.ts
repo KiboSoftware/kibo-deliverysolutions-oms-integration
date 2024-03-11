@@ -3,6 +3,7 @@ export interface TenantConfiguration {
   kiboTenant: number;
   kiboSites: number[];
   dsTenant: string;
+  locationMapping: LocationMapping[];
   kiboCredentials: {
     clientId: string;
     clientSecret: string;
@@ -12,4 +13,9 @@ export interface TenantConfiguration {
     apiKey: string;
     api: string;
   };
+}
+
+interface LocationMapping {
+  kibo: string;
+  ds: string;
 }

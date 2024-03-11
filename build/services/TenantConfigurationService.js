@@ -53,3 +53,4 @@ class TenantConfigService {
     }
 }
 exports.TenantConfigService = TenantConfigService;
+//# sourceMappingURL=tenantConfigurationService.js.map
