@@ -11,6 +11,7 @@ import {
   OrderAttribute,
 } from "@kibocommerce/rest-sdk/clients/Commerce";
 import { KiboCommerceService } from "../services/kiboCommerceService";
+import { mapTimeWindows } from "../mappers/orderMappers";
 export class DeliverySolutionsOrderSync {
   deliverySolutionsService: DeliverySolutionsService;
   kiboShipmentService: KiboShipmentService;
@@ -39,31 +40,40 @@ export class DeliverySolutionsOrderSync {
       return;
     }
     return await this.deliverySolutionsService.cancelOrder(
-      'kibo_'+ shipmentNumber.toString()
+      "kibo_" + shipmentNumber.toString()
     );
+  }
+  async releaseShipment(shipmentNumber: number): Promise<any> {
+    const kiboShipment = await this.getShipmentById(shipmentNumber);
+    if (kiboShipment?.shipmentType != "Delivery") {
+      return;
+    }
+    const deliveryOrder = {
+      orderExternalId: "kibo_" + shipmentNumber.toString(),
+      release: {
+        type: "immediate",
+      },
+    } as any as DeliverySolutionsOrder;
+
+    console.log("releasing order");
+    return await this.deliverySolutionsService.editOrder(deliveryOrder);
   }
   async updateShipmentItems(shipmentNumber: number): Promise<any> {
     const kiboShipment = await this.getShipmentById(shipmentNumber);
     if (kiboShipment?.shipmentType != "Delivery") {
       return;
     }
-    const deliveryOrder = await this.deliverySolutionsService.getOrder(
-      'kibo_'+ shipmentNumber.toString()
-    );
-    if (!deliveryOrder) {
-      return;
-    }
+    
 
     const mappedOrder = mapKiboShipmentToDsOrder(
       kiboShipment,
-      this.tenantConfig,
-      deliveryOrder.dropoffTime,
-      deliveryOrder.pickupTime
+      this.tenantConfig      
     );
 
-    delete mappedOrder.isEstimate;
-    delete mappedOrder.tenantId;
-    delete mappedOrder.isPickup;
+    const deliveryOrder = {
+      orderExternalId: mappedOrder.orderExternalId,
+      aitemList: mappedOrder.itemList,
+    } as any as DeliverySolutionsOrder;
 
     console.log("editing order");
     return await this.deliverySolutionsService.editOrder(mappedOrder);
@@ -75,40 +85,11 @@ export class DeliverySolutionsOrderSync {
       return;
     }
 
-    const now = new Date().getTime();
-    let pickup: TimeWindow | undefined = {
-      startsAt: now,
-      endsAt: now + 1000 * 60 * 60 * 24,
-    };
-    let dropOff: TimeWindow = {
-      startsAt: now,
-      endsAt: now + 1000 * 60 * 60 * 24,
-    };
-
     const order = await this.getOrderById(shipment.orderId);
 
-    const dropOffAttribute = order?.attributes
-      ?.find((attr: OrderAttribute) => {
-        return attr.fullyQualifiedName?.toLowerCase().includes("dropOff");
-      })
-      ?.values?.[0]?.toString()
-      ?.trim();
-    if (dropOffAttribute) {
-      dropOff = JSON.parse(dropOffAttribute);
-    }
+    const windows = mapTimeWindows(order, true);
 
-    const pickUpAttribute = order.attributes
-      ?.find((attr: OrderAttribute) => {
-        return attr.fullyQualifiedName?.toLowerCase().includes("pickup");
-      })
-      ?.values?.[0]?.toString()
-      ?.trim();
-    if (pickUpAttribute) {
-      pickup = JSON.parse(pickUpAttribute);
-    }
-
-    //todo: what if pickup or dropoff time is null ??
-    return await this.createOrder(shipment, dropOff, pickup);
+    return await this.createOrder(shipment, windows.dropoffTime, windows.pickupTime);
   }
   async getShipmentById(
     kiboShipmentId: number
@@ -121,7 +102,7 @@ export class DeliverySolutionsOrderSync {
 
   async createOrder(
     kiboShipment: EntityModelOfShipment,
-    dropOff: TimeWindow,
+    dropOff?: TimeWindow,
     pickup?: TimeWindow
   ): Promise<DeliverySolutionsOrder> {
     const mappedOrder = mapKiboShipmentToDsOrder(

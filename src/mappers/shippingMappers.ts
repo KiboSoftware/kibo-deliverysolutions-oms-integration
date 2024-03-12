@@ -5,7 +5,7 @@ import { TenantConfiguration } from "../types/tenantConfiguration";
 export function mapKiboShipmentToDsOrder(
   kiboShipment: EntityModelOfShipment,
   tenantConfig: TenantConfiguration,
-  dropoffTime: TimeWindow,
+  dropoffTime?: TimeWindow,
   pickupTime?: TimeWindow ,
 ): DeliverySolutionsOrder {
   const now = new Date().getTime();

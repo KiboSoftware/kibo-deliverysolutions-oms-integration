@@ -64,8 +64,11 @@ export const handler = async (
       await deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
       break;  
     case "PARTIAL_INVENTORY_NOPE": //todo make configurable
-    await deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
-    break; 
+      await deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
+      break;
+    case "READY_FOR_DELIVERY":
+      await deliverySolutionsOrderSync.releaseShipment(body.entityId);
+      break;
     default:
       console.log("Not an actionable state change event");
       return;

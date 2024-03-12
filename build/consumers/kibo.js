@@ -62,6 +62,9 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
             case "PARTIAL_INVENTORY_NOPE": //todo make configurable
                 yield deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
                 break;
+            case "READY_FOR_DELIVERY":
+                yield deliverySolutionsOrderSync.releaseShipment(body.entityId);
+                break;
             default:
                 console.log("Not an actionable state change event");
                 return;
