@@ -11,13 +11,17 @@ export const handler = async (
   const body = detail?.body;
   const extendedProperties = body?.extendedProperties;
   const apiContext = initKiboApiContextFromHeaders(detail.headers);
+  if ( apiContext.tenantId == undefined ) {
+    console.error("No tenantId found in headers");
+    return;
+  }
   const config = await new TenantConfigService().getConfigByKiboTenant(
-    apiContext.tenantId
+    apiContext.tenantId 
   );
 
   console.log(event, event.detail.body);
   if (!config) {
-    console.error("No config found for tenant", apiContext.tenantId);
+    console.error("No config found fer tenant", apiContext.tenantId);
     return;
   }
   if (event["detail-type"] != "shipment.workflowstatechanged") {
@@ -39,27 +43,40 @@ export const handler = async (
     console.error("newState not found in extendedProperties");
     return;
   }
-
-  if (newState !== "ACCEPTED_SHIPMENT") {
-    console.log("Not an ACCEPTED_SHIPMENT event");
+  const shipmentNumber = parseInt(body.entityId);
+  if ( isNaN(shipmentNumber) ) {
+    console.error("Invalid shipmentNumber", body.entityId);
     return;
   }
 
-  try {
-    const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
-      config,
-      apiContext
-    );
-    deliverySolutionsOrderSync.processShipmentCreate(body.shipmentNumber);
+  const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
+    config,
+    apiContext
+  );
+
+
+  try{
+  switch (newState) {
+    case "ACCEPTED_SHIPMENT": //todo make configurable
+      await deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
+      break;
+    case "BACKORDER": //todo make configurable
+      await deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
+      break;  
+    case "PARTIAL_INVENTORY_NOPE": //todo make configurable
+    await deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
+    break; 
+    default:
+      console.log("Not an actionable state change event");
+      return;
+  }
+
+
   } catch (e) {
     console.error("Error creating order", e);
   }
 
-  //todo look up config for when to create the order in ds
-
-  //todo look up cofig for when to create the ordre in ds
-
-  // Process the event detail
+  
 };
 
 export default handler;

@@ -15,14 +15,52 @@ class DeliverySolutionsService {
     constructor(tenantConfiguration) {
         this.tenantConfiguration = tenantConfiguration;
     }
+    editOrder(order) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = `${this.tenantConfiguration.dsCredentials.api}/api/v2/order/edit/orderExternalId/${order.orderExternalId}`;
+            const headers = {
+                tenantId: this.tenantConfiguration.dsTenant,
+                "x-api-key": this.tenantConfiguration.dsCredentials.apiKey,
+            };
+            const response = yield axios_1.default.post(url, order, { headers });
+            return response.data;
+        });
+    }
     createOrder(order) {
         return __awaiter(this, void 0, void 0, function* () {
             const url = `${this.tenantConfiguration.dsCredentials.api}/api/v2/order/placeorderasync`;
             const headers = {
-                'tenantId': this.tenantConfiguration.dsTenant,
-                'x-api-key': this.tenantConfiguration.dsCredentials.apiKey
+                tenantId: this.tenantConfiguration.dsTenant,
+                "x-api-key": this.tenantConfiguration.dsCredentials.apiKey,
             };
             const response = yield axios_1.default.post(url, order, { headers });
+            return response.data;
+        });
+    }
+    cancelOrder(orderExternalId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = `${this.tenantConfiguration.dsCredentials.api}/api/v2/order/orderExternalId/${orderExternalId}`;
+            const headers = {
+                tenantId: this.tenantConfiguration.dsTenant,
+                "x-api-key": this.tenantConfiguration.dsCredentials.apiKey,
+            };
+            const response = yield axios_1.default.delete(url, { headers });
+            try {
+                return response.data;
+            }
+            catch (err) {
+                return undefined;
+            }
+        });
+    }
+    getOrder(orderExternalId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = `${this.tenantConfiguration.dsCredentials.api}/api/v2/order/getById/orderExternalId/${orderExternalId}`;
+            const headers = {
+                tenantId: this.tenantConfiguration.dsTenant,
+                "x-api-key": this.tenantConfiguration.dsCredentials.apiKey,
+            };
+            const response = yield axios_1.default.get(url, { headers });
             return response.data;
         });
     }

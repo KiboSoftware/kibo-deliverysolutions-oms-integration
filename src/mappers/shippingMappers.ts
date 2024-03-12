@@ -46,7 +46,7 @@ export function mapKiboShipmentToDsOrder(
     },
     type: "delivery",
     storeExternalId: storeExternalId,
-    orderExternalId: kiboShipment.shipmentNumber?.toString() || "",
+    orderExternalId: 'kibo_'+ kiboShipment.shipmentNumber?.toString() ,
     orderValue: kiboShipment.total || 0,
     tips: 0,
     itemList:
@@ -57,6 +57,7 @@ export function mapKiboShipmentToDsOrder(
           width: (item as any).width || 1,
           length: (item as any).length || 1,
         },
+        image: item.imageUrl || "",
         sku: item.productCode || "",
         weight: item.weight || 1,
         price: item.actualPrice || 0,

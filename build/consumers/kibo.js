@@ -19,10 +19,14 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
     const body = detail === null || detail === void 0 ? void 0 : detail.body;
     const extendedProperties = body === null || body === void 0 ? void 0 : body.extendedProperties;
     const apiContext = (0, kiboContext_1.initKiboApiContextFromHeaders)(detail.headers);
+    if (apiContext.tenantId == undefined) {
+        console.error("No tenantId found in headers");
+        return;
+    }
     const config = yield new tenantConfigurationService_1.TenantConfigService().getConfigByKiboTenant(apiContext.tenantId);
     console.log(event, event.detail.body);
     if (!config) {
-        console.error("No config found for tenant", apiContext.tenantId);
+        console.error("No config found fer tenant", apiContext.tenantId);
         return;
     }
     if (event["detail-type"] != "shipment.workflowstatechanged") {
@@ -41,20 +45,31 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         console.error("newState not found in extendedProperties");
         return;
     }
-    if (newState !== "ACCEPTED_SHIPMENT") {
-        console.log("Not an ACCEPTED_SHIPMENT event");
+    const shipmentNumber = parseInt(body.entityId);
+    if (isNaN(shipmentNumber)) {
+        console.error("Invalid shipmentNumber", body.entityId);
         return;
     }
+    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(config, apiContext);
     try {
-        const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(config, apiContext);
-        deliverySolutionsOrderSync.processShipmentCreate(body.shipmentNumber);
+        switch (newState) {
+            case "ACCEPTED_SHIPMENT": //todo make configurable
+                yield deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
+                break;
+            case "BACKORDER": //todo make configurable
+                yield deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
+                break;
+            case "PARTIAL_INVENTORY_NOPE": //todo make configurable
+                yield deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
+                break;
+            default:
+                console.log("Not an actionable state change event");
+                return;
+        }
     }
     catch (e) {
         console.error("Error creating order", e);
     }
-    //todo look up config for when to create the order in ds
-    //todo look up cofig for when to create the ordre in ds
-    // Process the event detail
 });
 exports.handler = handler;
 exports.default = exports.handler;

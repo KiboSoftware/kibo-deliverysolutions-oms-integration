@@ -94,6 +94,5 @@ To learn more about the capabilities of `serverless-offline`, please refer to it
 
 
 
- // "serverless": "^2.20.1",
-        // "serverless-offline": "^6.8.0",
-        // "serverless-plugin-typescript": "^1.1.9",
+#### notes to self
+https://www.serverless.com/console/docs/nodejs-sdk

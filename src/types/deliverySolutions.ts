@@ -46,7 +46,7 @@ export interface ReturnLocation {
 
 export interface DeliverySolutionsOrder {
     pickupTime?: TimeWindow ;
-    dropoffTime?: TimeWindow;
+    dropoffTime: TimeWindow;
     deliveryContact?: Contact;
     deliveryAddress?: Address;
     dispatch?: { type?: string };
@@ -66,7 +66,6 @@ export interface DeliverySolutionsOrder {
     isPickupASAP?: boolean;
     isDropoffASAP?: boolean;
     userPickupTime?: number;
-    dropOffTime?: number;
     returnStoreId?: string;
     undeliverableOrderReturnLocation?: ReturnLocation;
     packages?: any[];

@@ -33,6 +33,42 @@ export class DeliverySolutionsOrderSync {
     );
   }
 
+  async processShipmentCancel(shipmentNumber: number): Promise<any> {
+    const shipment = await this.getShipmentById(shipmentNumber);
+    if (shipment?.shipmentType != "Delivery") {
+      return;
+    }
+    return await this.deliverySolutionsService.cancelOrder(
+      'kibo_'+ shipmentNumber.toString()
+    );
+  }
+  async updateShipmentItems(shipmentNumber: number): Promise<any> {
+    const kiboShipment = await this.getShipmentById(shipmentNumber);
+    if (kiboShipment?.shipmentType != "Delivery") {
+      return;
+    }
+    const deliveryOrder = await this.deliverySolutionsService.getOrder(
+      'kibo_'+ shipmentNumber.toString()
+    );
+    if (!deliveryOrder) {
+      return;
+    }
+
+    const mappedOrder = mapKiboShipmentToDsOrder(
+      kiboShipment,
+      this.tenantConfig,
+      deliveryOrder.dropoffTime,
+      deliveryOrder.pickupTime
+    );
+
+    delete mappedOrder.isEstimate;
+    delete mappedOrder.tenantId;
+    delete mappedOrder.isPickup;
+
+    console.log("editing order");
+    return await this.deliverySolutionsService.editOrder(mappedOrder);
+  }
+
   async processShipmentCreate(shipmentNumber: number): Promise<any> {
     const shipment = await this.getShipmentById(shipmentNumber);
     if (shipment?.shipmentType != "Delivery") {
@@ -74,7 +110,9 @@ export class DeliverySolutionsOrderSync {
     //todo: what if pickup or dropoff time is null ??
     return await this.createOrder(shipment, dropOff, pickup);
   }
-  async getShipmentById(kiboShipmentId: number): Promise<any> {
+  async getShipmentById(
+    kiboShipmentId: number
+  ): Promise<EntityModelOfShipment> {
     return await this.kiboShipmentService.getShipmentById(kiboShipmentId);
   }
   async getOrderById(kiboOrderId: string): Promise<Order> {
@@ -95,12 +133,13 @@ export class DeliverySolutionsOrderSync {
 
     const deliverySolutionsOrder =
       await this.deliverySolutionsService.createOrder(mappedOrder);
+    console.log("deliverySolutionsOrder", deliverySolutionsOrder);
     if (deliverySolutionsOrder.trackingUrl) {
       await this.kiboShipmentService.updateTracking(
         deliverySolutionsOrder,
         kiboShipment
       );
     }
-    return deliverySolutionsOrder
+    return deliverySolutionsOrder;
   }
 }

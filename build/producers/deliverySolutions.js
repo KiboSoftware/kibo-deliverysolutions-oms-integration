@@ -18,6 +18,7 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const body = JSON.parse(event.body || '');
     const busName = process.env.EVENTBRIDGE_BUS_NAME || 'default';
     const topic = body.event || 'unknown';
+    console.log('dsWebhook', topic, body, headers);
     yield eventBridge.putEvents({
         Entries: [
             {
