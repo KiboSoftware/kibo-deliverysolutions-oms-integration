@@ -18,6 +18,10 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         const configs = yield tenantConfigService.getAllConfigs();
         return {
             statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true,
+            },
             body: JSON.stringify(configs),
         };
     }

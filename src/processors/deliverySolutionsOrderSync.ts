@@ -8,11 +8,13 @@ import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillmen
 import {
   Order,
   OrderApi,
-  OrderAttribute,
 } from "@kibocommerce/rest-sdk/clients/Commerce";
 import { KiboCommerceService } from "../services/kiboCommerceService";
 import { mapTimeWindows } from "../mappers/orderMappers";
 export class DeliverySolutionsOrderSync {
+  static mockImplementation(arg0: () => { markKiboShipmentDelivered: jest.Mock<any, any, any>; }) {
+      throw new Error("Method not implemented.");
+  }
   deliverySolutionsService: DeliverySolutionsService;
   kiboShipmentService: KiboShipmentService;
   kiboOrderService: KiboCommerceService;
@@ -39,6 +41,7 @@ export class DeliverySolutionsOrderSync {
     if (shipment?.shipmentType != "Delivery") {
       return;
     }
+    console.log("candeling order" , "kibo_" + shipmentNumber.toString());
     return await this.deliverySolutionsService.cancelOrder(
       "kibo_" + shipmentNumber.toString()
     );
@@ -48,15 +51,16 @@ export class DeliverySolutionsOrderSync {
     if (kiboShipment?.shipmentType != "Delivery") {
       return;
     }
-    const deliveryOrder = {
+    let deliveryOrder = {
       orderExternalId: "kibo_" + shipmentNumber.toString(),
       release: {
         type: "immediate",
       },
     } as any as DeliverySolutionsOrder;
 
-    console.log("releasing order");
-    return await this.deliverySolutionsService.editOrder(deliveryOrder);
+    console.log("releasing order" , deliveryOrder.orderExternalId);
+    deliveryOrder = await this.deliverySolutionsService.editOrder(deliveryOrder);
+    console.log("released order" , deliveryOrder);
   }
   async updateShipmentItems(shipmentNumber: number): Promise<any> {
     const kiboShipment = await this.getShipmentById(shipmentNumber);
@@ -75,7 +79,8 @@ export class DeliverySolutionsOrderSync {
       aitemList: mappedOrder.itemList,
     } as any as DeliverySolutionsOrder;
 
-    console.log("editing order");
+  
+    console.log("editing order" , deliveryOrder.orderExternalId);
     return await this.deliverySolutionsService.editOrder(mappedOrder);
   }
 
@@ -89,7 +94,9 @@ export class DeliverySolutionsOrderSync {
 
     const windows = mapTimeWindows(order, true);
 
-    return await this.createOrder(shipment, windows.dropoffTime, windows.pickupTime);
+    let dsOrder =  await this.createOrder(shipment, windows.dropoffTime, windows.pickupTime);
+    console.log("created dsOrder", dsOrder);
+    return dsOrder;
   }
   async getShipmentById(
     kiboShipmentId: number
@@ -98,6 +105,21 @@ export class DeliverySolutionsOrderSync {
   }
   async getOrderById(kiboOrderId: string): Promise<Order> {
     return await this.kiboOrderService.getOrderById(kiboOrderId);
+  }
+  toDsOrderExternalId(kiboId: number): string {
+    return "kibo_" + kiboId;
+  }
+  toKiboShipmentId(dsId: string): number {
+    return parseInt(dsId.replace("kibo_", ""));
+  }
+
+  async cancelKiboShipment ( orderExternalId: string): Promise<any> {
+    const shipmentId = this.toKiboShipmentId(orderExternalId);
+    return await this.kiboShipmentService.cancel(shipmentId);
+  }
+  async markKiboShipmentDelivered ( orderExternalId: string): Promise<any> {
+    const shipmentId = this.toKiboShipmentId(orderExternalId);
+    return await this.kiboShipmentService.execute(shipmentId,'Provide to Customer');
   }
 
   async createOrder(

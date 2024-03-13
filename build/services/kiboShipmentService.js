@@ -30,20 +30,61 @@ class KiboShipmentService {
     }
     getShipmentById(shipmentNumber) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.shipmentApi.getShipmentUsingGET({ shipmentNumber });
+            return yield this.shipmentApi.getShipment({ shipmentNumber });
+        });
+    }
+    cancel(shipmentNumber) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let requestParams = {
+                shipmentNumber,
+                cancelShipmentRequestDto: {
+                    canceledReason: {
+                        reasonCode: "Customer changed mind.",
+                    },
+                },
+            };
+            return yield this.shipmentApi.cancelShipment(requestParams);
+        });
+    }
+    sendToCustomerCare(shipmentNumber) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let requestParams = {
+                shipmentNumber,
+                rejectShipmentRequestDto: {
+                    rejectedReason: {
+                        reasonCode: "DSP Driver refused delivery.",
+                    },
+                    blockAssignment: true,
+                },
+            };
+            return yield this.shipmentApi.customerCareShipment(requestParams);
+        });
+    }
+    execute(shipmentNumber, taskName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let requestParams = {
+                shipmentNumber,
+                taskName,
+                taskCompleteDto: {
+                    taskBody: {},
+                },
+            };
+            return yield this.shipmentApi.execute(requestParams);
         });
     }
     updateTracking(deliverySolutionsOrder, kiboShipment) {
         return __awaiter(this, void 0, void 0, function* () {
             const shipmentPatch = {
-                "shopperNotes": {
-                    "deliveryInstructions": deliverySolutionsOrder.trackingUrl
-                }
+                shopperNotes: {
+                    deliveryInstructions: deliverySolutionsOrder.trackingUrl,
+                },
             };
-            return yield this.shipmentApi.replaceShipmentUsingPUT({ shipmentNumber: kiboShipment.shipmentNumber || 0,
-                updateFields: "shopperNotes.deliveryInstructions",
-                shipment: shipmentPatch
-            });
+            return Promise.resolve({});
+            // return await this.shipmentApi.replaceShipment({
+            //   shipmentNumber: kiboShipment.shipmentNumber || 0,
+            //   updateFields: ["shopperNotes.deliveryInstructions"],
+            //   shipment: shipmentPatch as Shipment,
+            // });
         });
     }
 }

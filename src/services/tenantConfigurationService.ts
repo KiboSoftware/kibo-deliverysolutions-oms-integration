@@ -6,17 +6,17 @@ import {
   APIGatewayProxyResult,
 } from "aws-lambda";
 import { TenantConfiguration } from "../types/tenantConfiguration";
-const dynamoDb = new DynamoDB.DocumentClient();
 
 export class TenantConfigService {
+  static dynamoDb = new DynamoDB.DocumentClient();
   async getConfigById(id: string): Promise<TenantConfiguration> {
-    const result = await dynamoDb
+    const result = await TenantConfigService.dynamoDb
       .get({ TableName: process.env.DYNAMODB_TABLE!, Key: { id } })
       .promise();
     return result.Item as TenantConfiguration;
   }
   async getAllConfigs() {
-    return await dynamoDb
+    return await TenantConfigService.dynamoDb
       .scan({ TableName: process.env.DYNAMODB_TABLE! })
       .promise();
   }
@@ -25,7 +25,7 @@ export class TenantConfigService {
       TableName: process.env.DYNAMODB_TABLE!,
       Item: config,
     };
-    return await dynamoDb.put(params).promise();
+    return await TenantConfigService.dynamoDb.put(params).promise();
   }
 
   async getConfigByKiboTenant2(
@@ -34,7 +34,7 @@ export class TenantConfigService {
     kiboTenant = parseInt(kiboTenant.toString());
     const filter = { kiboTenant: kiboTenant };
     try {
-      const result = await dynamoDb
+      const result = await TenantConfigService.dynamoDb
         .get({ TableName: process.env.DYNAMODB_TABLE!, Key: filter })
         .promise();
       return result.Item as TenantConfiguration;
@@ -63,7 +63,7 @@ export class TenantConfigService {
       },
     };
 
-    const result = await dynamoDb.scan(params).promise();
+    const result = await TenantConfigService.dynamoDb.scan(params).promise();
 
     // If items are found, return the first item. Otherwise, return null.
     return (result.Items ?? [])[0] as TenantConfiguration;
@@ -81,7 +81,7 @@ export class TenantConfigService {
       },
     };
 
-    const result = await dynamoDb.scan(params).promise();
+    const result = await TenantConfigService.dynamoDb.scan(params).promise();
 
     // If items are found, return the first item. Otherwise, return null.
     return (result.Items ?? [])[0] as TenantConfiguration;
@@ -101,7 +101,7 @@ export class TenantConfigService {
       },
     };
 
-    const result = await dynamoDb.scan(params).promise();
+    const result = await TenantConfigService.dynamoDb.scan(params).promise();
 
     // If items are found, return the first item. Otherwise, return null.
     return (result.Items ?? [])[0] as TenantConfiguration;

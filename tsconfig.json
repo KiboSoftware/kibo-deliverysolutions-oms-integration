@@ -6,6 +6,7 @@
       "strict": true,
       "rootDir": "src",
       "outDir": "build",
-      "sourceMap": true
+      "sourceMap": true,
+      "strictNullChecks":false
     }
   }

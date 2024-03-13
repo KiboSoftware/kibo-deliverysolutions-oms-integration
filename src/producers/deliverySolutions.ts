@@ -13,8 +13,8 @@ export const handler = async (event: AWSLambda.APIGatewayEvent): Promise<AWSLamb
         Entries: [
             {
                 Source: 'ds',
-                DetailType: body.topic,
-                Detail: JSON.stringify({ body, headers }),
+                DetailType: body.event || body.status || 'unknown',
+                Detail: JSON.stringify(body),
                 EventBusName: busName,
             },
         ],

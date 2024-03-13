@@ -11,11 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantConfigService = void 0;
 const aws_sdk_1 = require("aws-sdk");
-const dynamoDb = new aws_sdk_1.DynamoDB.DocumentClient();
 class TenantConfigService {
     getConfigById(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield dynamoDb
+            const result = yield TenantConfigService.dynamoDb
                 .get({ TableName: process.env.DYNAMODB_TABLE, Key: { id } })
                 .promise();
             return result.Item;
@@ -23,7 +22,7 @@ class TenantConfigService {
     }
     getAllConfigs() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield dynamoDb
+            return yield TenantConfigService.dynamoDb
                 .scan({ TableName: process.env.DYNAMODB_TABLE })
                 .promise();
         });
@@ -34,7 +33,7 @@ class TenantConfigService {
                 TableName: process.env.DYNAMODB_TABLE,
                 Item: config,
             };
-            return yield dynamoDb.put(params).promise();
+            return yield TenantConfigService.dynamoDb.put(params).promise();
         });
     }
     getConfigByKiboTenant2(kiboTenant) {
@@ -42,7 +41,7 @@ class TenantConfigService {
             kiboTenant = parseInt(kiboTenant.toString());
             const filter = { kiboTenant: kiboTenant };
             try {
-                const result = yield dynamoDb
+                const result = yield TenantConfigService.dynamoDb
                     .get({ TableName: process.env.DYNAMODB_TABLE, Key: filter })
                     .promise();
                 return result.Item;
@@ -67,7 +66,7 @@ class TenantConfigService {
                     ":kt": kiboTenant,
                 },
             };
-            const result = yield dynamoDb.scan(params).promise();
+            const result = yield TenantConfigService.dynamoDb.scan(params).promise();
             // If items are found, return the first item. Otherwise, return null.
             return ((_a = result.Items) !== null && _a !== void 0 ? _a : [])[0];
         });
@@ -85,7 +84,7 @@ class TenantConfigService {
                     ":ks": kiboSite,
                 },
             };
-            const result = yield dynamoDb.scan(params).promise();
+            const result = yield TenantConfigService.dynamoDb.scan(params).promise();
             // If items are found, return the first item. Otherwise, return null.
             return ((_a = result.Items) !== null && _a !== void 0 ? _a : [])[0];
         });
@@ -103,11 +102,12 @@ class TenantConfigService {
                     ":dt": dsTenant,
                 },
             };
-            const result = yield dynamoDb.scan(params).promise();
+            const result = yield TenantConfigService.dynamoDb.scan(params).promise();
             // If items are found, return the first item. Otherwise, return null.
             return ((_a = result.Items) !== null && _a !== void 0 ? _a : [])[0];
         });
     }
 }
 exports.TenantConfigService = TenantConfigService;
+TenantConfigService.dynamoDb = new aws_sdk_1.DynamoDB.DocumentClient();
 //# sourceMappingURL=tenantConfigurationService.js.map

@@ -23,8 +23,8 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         Entries: [
             {
                 Source: 'ds',
-                DetailType: body.topic,
-                Detail: JSON.stringify({ body, headers }),
+                DetailType: body.event || body.status || 'unknown',
+                Detail: JSON.stringify(body),
                 EventBusName: busName,
             },
         ],

@@ -1,3 +1,4 @@
+import { TenantConfiguration } from "./tenantConfiguration";
 
 
 export interface KiboApiContext {
@@ -5,8 +6,8 @@ export interface KiboApiContext {
     siteId?: number;
     masterCatalogId?: number;
     catalogId?: number;
-    localeCode: string;
-    currencyCode: string;
+    localeCode?: string;
+    currencyCode?: string;
 }
 export function initKiboApiContextFromHeaders ( headers: any ): KiboApiContext{
     return {
@@ -17,4 +18,9 @@ export function initKiboApiContextFromHeaders ( headers: any ): KiboApiContext{
         localeCode: headers['x-vol-locale'],
         currencyCode: headers['x-vol-currency']
       }
+}
+export function initKiboApiContextFromTenantConfig ( tenantConfig: TenantConfiguration ): KiboApiContext{
+    return {
+        tenantId: tenantConfig.kiboTenant
+    };
 }

@@ -1,13 +1,16 @@
 service: serverless-1
-frameworkVersion: '3'
-
+frameworkVersion: '3'	
 provider:
+
   name: aws
   runtime: nodejs18.x
   environment:
     DYNAMODB_TABLE: ${self:service}-${sls:stage}
     EVENTBRIDGE_BUS_NAME: ${self:service}-${sls:stage}
-  iam:
+    CONTENT_BUCKET_NAME: ${self:service}-${sls:stage}-website-bucket
+  httpApi:
+      cors: true
+  iam:    
     role:
       statements:
         - Effect: Allow
@@ -23,34 +26,17 @@ provider:
           Action:
             - events:PutEvents
           Resource: "arn:aws:events:${aws:region}:*:event-bus/${self:provider.environment.EVENTBRIDGE_BUS_NAME}"
-        
-# constructs:
-#   dsEvents:
-#     type: webhook
-#     path: /webhooks/ds
-#     eventType: 'ds'
-#     method: POST
-#     insecure: true
-    
-
-#   kiboEvents:
-#     type: webhook
-#     path: /webhooks/kibo
-#     eventType: 'kibo'
-#     method: POST
-#     insecure: true
-
-  # jobs:
-  #   type: queue
-  #   worker:
-  #     handler: build/consumers/index.handler
+custom:
+  client:
+    bucketName: ${self:provider.environment.CONTENT_BUCKET_NAME}
+    distributionFolder: config-ui/build
 functions:
   getConfigs:
     handler: build/api/configs/list.handler
     events:
       - httpApi:
           path: /configs
-          method: get
+          method: get  
   getConfigById:
     handler: build/api/configs/getById.handler
     events:
@@ -63,6 +49,10 @@ functions:
       - httpApi:
           path: /configs/{id}
           method: put
+  catchAll:
+    handler: build/api/catchAll.handler
+    events:
+      - httpApi: '*'
   dsWebhook:
     handler: build/producers/deliverySolutions.handler
     events:
@@ -107,11 +97,15 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
+package:
+  exclude:
+    - config-ui/**
 # plugins:
 #   - serverless-esbuild
 plugins:
   - serverless-lift
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-finch
 
 

@@ -27,6 +27,10 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         yield tenantConfigService.upsert(tenantConfig);
         return {
             statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true,
+            },
             body: JSON.stringify(tenantConfig),
         };
     }
