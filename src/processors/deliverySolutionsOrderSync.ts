@@ -81,7 +81,7 @@ export class DeliverySolutionsOrderSync {
 
   
     console.log("editing order" , deliveryOrder.orderExternalId);
-    return await this.deliverySolutionsService.editOrder(mappedOrder);
+    return await this.deliverySolutionsService.editOrder(deliveryOrder);
   }
 
   async processShipmentCreate(shipmentNumber: number): Promise<any> {
