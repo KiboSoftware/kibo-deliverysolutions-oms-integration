@@ -1,7 +1,7 @@
 {
   "name": "config-ui",
   "version": "0.1.0",
-  "proxy_": "https://g90izyb8qg.execute-api.us-east-1.amazonaws.com",
+  "proxy": "https://g90izyb8qg.execute-api.us-east-1.amazonaws.com",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.4",

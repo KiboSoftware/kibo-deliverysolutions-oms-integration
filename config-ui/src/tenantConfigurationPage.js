@@ -169,7 +169,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                   Kibo Info
                 </Typography>
                 <Grid container spacing={2}>
-                <Grid item xs={12}>
+                  <Grid item xs={12}>
                     <TextField
                       fullWidth
                       label="Kibo Tenant"
@@ -179,7 +179,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       }
                     />
                   </Grid>
-                <Grid item xs={7}>
+                  <Grid item xs={7}>
                     <TextField
                       fullWidth
                       label="Kibo Sites (comma-separated)"
@@ -187,7 +187,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       onChange={(e) => handleSiteChange(e.target.value)}
                     />
                   </Grid>
-                  <Grid item xs={5} >
+                  <Grid item xs={5}>
                     <TextField
                       fullWidth
                       label="API Host"
@@ -197,8 +197,8 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       }
                     />
                   </Grid>
-               
-                  <Grid item xs={7} >
+
+                  <Grid item xs={7}>
                     <TextField
                       fullWidth
                       label="Kibo Client ID"
@@ -208,8 +208,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       }
                     />
                   </Grid>
-                  
-                  
+
                   <Grid item xs={5}>
                     <TextField
                       fullWidth
@@ -224,14 +223,14 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       }
                     />
                   </Grid>
-               
-                 
                 </Grid>
               </CardContent>
             </Card>
           </Grid>
           {/* Location Mapping */}
           <Grid item xs={12}>
+            <Card>
+              <CardContent>
             <Typography variant="h6">Location Mapping</Typography>
             <List>
               {formData.locationMapping.map((mapping, index) => (
@@ -279,17 +278,32 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
             >
               Add Location Mapping
             </Button>
+            </CardContent>
+            </Card>
           </Grid>
         </Grid>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          sx={{ mt: 3 }}
-          onClick={() => onSave(formData)}
-        >
-          Save Changes
-        </Button>
+        <Grid container spacing={2}>
+          <Grid item>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ mt: 3 }}
+              onClick={() => onSave(formData)}
+            >
+              Save Changes
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              sx={{ mt: 3 }}
+              onClick={() => history.goBack()}
+            >
+              Cancel
+            </Button>
+          </Grid>
+        </Grid>
       </form>
     </Container>
   );
