@@ -20,7 +20,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 let empty = {
   id: "",
-  kiboTenant: "",
+  kiboTenant: null,
   kiboSites: [],
   dsTenant: "",
   locationMapping: [],
@@ -175,7 +175,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       label="Kibo Tenant"
                       value={formData.kiboTenant}
                       onChange={(e) =>
-                        handleChange("kiboTenant", e.target.value)
+                        handleChange("kiboTenant", Number(e.target.value))
                       }
                     />
                   </Grid>

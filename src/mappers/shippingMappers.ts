@@ -2,6 +2,17 @@ import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillmen
 import { DeliverySolutionsOrder, TimeWindow } from "../types/deliverySolutions";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 
+function getImageUrl(url: string | null): string {
+  if (!url) {
+    return '';
+  }
+
+  if (url.startsWith('//')) {
+    return 'https:' + url;
+  }
+  return url;
+}
+
 export function mapKiboShipmentToDsOrder(
   kiboShipment: EntityModelOfShipment,
   tenantConfig: TenantConfiguration,
@@ -19,6 +30,7 @@ export function mapKiboShipmentToDsOrder(
         (x) => x.kibo === kiboShipment.fulfillmentLocationCode
       )?.ds || kiboShipment.fulfillmentLocationCode;
   }
+
 
   return {
     pickupTime: pickupTime,
@@ -57,7 +69,7 @@ export function mapKiboShipmentToDsOrder(
           width: (item as any).width || 1,
           length: (item as any).length || 1,
         },
-        image: item.imageUrl || "",
+        image: getImageUrl(item.imageUrl ),
         sku: item.productCode || "",
         weight: item.weight || 1,
         price: item.actualPrice || 0,
