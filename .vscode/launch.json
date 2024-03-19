@@ -8,18 +8,14 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Serverless Offline",
-            "program": "/Users/thomas.phipps/.nvm/versions/node/v16.20.1/bin/serverless",
+            "program": "serverless",
             "args": ["offline", "start", "--httpPort", "4000", "--noTimeout"],
             "sourceMaps": true,
             "runtimeArgs": ["--lazy"],
             "outFiles": ["${workspaceRoot}/build/**/*.js"],
             "protocol": "inspector",
             "runtimeExecutable": "node",
-            "env": {
-                
-                "QUEU_URL":"https://sqs.us-east-1.amazonaws.com/542216209467/serverless-1-dev-jobs",
-                "DYNAMODB_TABLE": "serverless-1-dev"
-            },
+            "envFile": "${workspaceFolder}/.env",
          
         },
         {
@@ -29,7 +25,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/build/api/configs/upsert.js",
+            "program": "${file}",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
