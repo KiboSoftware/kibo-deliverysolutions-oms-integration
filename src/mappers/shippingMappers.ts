@@ -19,8 +19,7 @@ export function mapKiboShipmentToDsOrder(
   dropoffTime?: TimeWindow,
   pickupTime?: TimeWindow ,
 ): DeliverySolutionsOrder {
-  const now = new Date().getTime();
-  const tomorrow = new Date(now + 24 * 60 * 60 * 1000).getTime();
+  
   const deliveryContact = kiboShipment.destination?.destinationContact;
 
   let storeExternalId = kiboShipment.fulfillmentLocationCode;

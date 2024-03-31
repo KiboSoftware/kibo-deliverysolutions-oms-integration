@@ -10,14 +10,14 @@ export function mapTimeWindows(
   kiboOrder: Order,
   setDefaultValues?: boolean
 ): TimeWindows {
-  let timeWindows: TimeWindows = {};
+  const timeWindows: TimeWindows = {};
   const now = new Date().getTime();
 
   kiboOrder.attributes?.forEach((attribute) => {
     if (attribute?.values && attribute.values[0]) {
-      let time = Date.parse(attribute.values[0]?.toString().trim());
+      const time = Date.parse(attribute.values[0]?.toString().trim());
       if (!time) return;
-      let code = attribute.fullyQualifiedName?.split("~")?.slice(-1)[0];
+      const code = attribute.fullyQualifiedName?.split("~")?.slice(-1)[0];
       switch (code?.toLowerCase()) {
         case "pickupTimeStart".toLowerCase():
           if (!timeWindows.pickupTime) timeWindows.pickupTime = {};

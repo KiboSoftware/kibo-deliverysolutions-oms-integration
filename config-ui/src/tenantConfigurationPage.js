@@ -33,6 +33,9 @@ let empty = {
     apiKey: "",
     api: null,
   },
+  createOrderEvent: "ACCEPTED_SHIPMENT",
+  orderReadyEvent: "READY_FOR_DELIVERY",
+  tipProductCode: "",
 };
 
 const TenantConfigurationPage = ({ configuration, onSave }) => {
@@ -227,58 +230,109 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
               </CardContent>
             </Card>
           </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Workflow Settings
+                </Typography>
+                <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Create Order Event"
+                    value={formData.createOrderEvent}
+                    onChange={(e) =>
+                      handleChange("createOrderEvent", e.target.value)
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Order Ready Event"
+                    value={formData.orderReadyEvent}
+                    onChange={(e) =>
+                      handleChange("orderReadyEvent", e.target.value)
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Tip Product Code"
+                    value={formData.tipProductCode}
+                    onChange={(e) =>
+                      handleChange("tipProductCode", e.target.value)
+                    }
+                  />
+                </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
           {/* Location Mapping */}
           <Grid item xs={12}>
             <Card>
               <CardContent>
-            <Typography variant="h6">Location Mapping</Typography>
-            <List>
-              {formData.locationMapping.map((mapping, index) => (
-                <ListItem key={index} dense>
-                  <ListItemText>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Delivery Solutions Location"
-                          value={mapping.ds}
-                          onChange={(e) =>
-                            handleLocationChange(index, "ds", e.target.value)
-                          }
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Kibo Location"
-                          value={mapping.kibo}
-                          onChange={(e) =>
-                            handleLocationChange(index, "kibo", e.target.value)
-                          }
-                        />
-                      </Grid>
-                    </Grid>
-                  </ListItemText>
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => removeLocationMapping(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-            <Button
-              startIcon={<AddCircleOutlineIcon />}
-              onClick={addLocationMapping}
-              variant="outlined"
-            >
-              Add Location Mapping
-            </Button>
-            </CardContent>
+                <Typography variant="h6">Location Mapping</Typography>
+                <List>
+                  {formData.locationMapping.map((mapping, index) => (
+                    <ListItem key={index} dense>
+                      <ListItemText>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Delivery Solutions Location"
+                              value={mapping.ds}
+                              onChange={(e) =>
+                                handleLocationChange(
+                                  index,
+                                  "ds",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Kibo Location"
+                              value={mapping.kibo}
+                              onChange={(e) =>
+                                handleLocationChange(
+                                  index,
+                                  "kibo",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Grid>
+                        </Grid>
+                      </ListItemText>
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => removeLocationMapping(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+                <Button
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={addLocationMapping}
+                  variant="outlined"
+                >
+                  Add Location Mapping
+                </Button>
+              </CardContent>
             </Card>
           </Grid>
         </Grid>

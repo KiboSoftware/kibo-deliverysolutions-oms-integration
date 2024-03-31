@@ -13,7 +13,8 @@ exports.handler = void 0;
 const tenantConfigurationService_1 = require("../services/tenantConfigurationService");
 const deliverySolutionsOrderSync_1 = require("../processors/deliverySolutionsOrderSync");
 const kiboContext_1 = require("../types/kiboContext");
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+const applicationEventProcessor_1 = require("../processors/applicationEventProcessor");
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const detail = event.detail;
     const body = detail === null || detail === void 0 ? void 0 : detail.body;
@@ -23,11 +24,17 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         console.error("No tenantId found in headers");
         return;
     }
-    const config = yield new tenantConfigurationService_1.TenantConfigService().getConfigByKiboTenant(apiContext.tenantId);
+    const tenantConfig = yield new tenantConfigurationService_1.TenantConfigService().getConfigByKiboTenant(apiContext.tenantId);
     console.log(event, event.detail.body);
-    if (!config) {
+    if (!tenantConfig) {
         console.error("No config found fer tenant", apiContext.tenantId);
         return;
+    }
+    const eventType = event["detail-type"];
+    const eventDomain = eventType.split(".")[0];
+    if (eventDomain == "application") {
+        console.log("proccing application event");
+        return yield new applicationEventProcessor_1.ApplicationEventProcessor({ tenantConfig }).processEvent(event);
     }
     if (event["detail-type"] != "shipment.workflowstatechanged") {
         console.log("Not a shipment.workflowstatechanged event");
@@ -50,9 +57,11 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         console.error("Invalid shipmentNumber", body.entityId);
         return;
     }
-    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(config, apiContext);
+    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(tenantConfig, apiContext);
     try {
         switch (newState) {
+            case "PRE_ACCEPT_SHIPMENT": //todo make configurable
+                break;
             case "ACCEPTED_SHIPMENT": //todo make configurable
                 yield deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
                 break;

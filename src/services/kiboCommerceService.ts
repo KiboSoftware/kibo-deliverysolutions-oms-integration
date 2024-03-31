@@ -9,6 +9,7 @@ export class KiboCommerceService {
     constructor(config: TenantConfiguration, context: KiboApiContext) {
         const configuration = new Configuration({
         tenantId: context.tenantId?.toString(),
+        fetchApi: fetch,
         siteId: context.siteId?.toString(),
         catalog: context.catalogId?.toString(),
         masterCatalog: context.masterCatalogId?.toString(),

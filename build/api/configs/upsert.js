@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const tenantConfigurationService_1 = require("../../services/tenantConfigurationService");
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const tenantConfigService = new tenantConfigurationService_1.TenantConfigService();
     const tenantConfig = JSON.parse(event.body || '{}');

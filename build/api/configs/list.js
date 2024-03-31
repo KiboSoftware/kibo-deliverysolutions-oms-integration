@@ -11,11 +11,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const tenantConfigurationService_1 = require("../../services/tenantConfigurationService");
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+const kiboAppConfigurationService_1 = require("../../services/kiboAppConfigurationService");
+const jwtService_1 = require("../../services/jwtService");
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    const sharedSecret = kiboAppConfigurationService_1.KiboAppConfigurationService.getCurrent().clientSecret;
+    const jwtService = new jwtService_1.JwtService(sharedSecret);
+    const token = jwtService.readJwtFromEvent(event);
+    if (!token) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ message: 'Unauthorized' }),
+        };
+    }
+    const tenantId = token.tenantId;
     const tenantConfigService = new tenantConfigurationService_1.TenantConfigService();
     console.log('list');
     try {
-        const configs = yield tenantConfigService.getAllConfigs();
+        const configs = yield tenantConfigService.getAllConfigs(tenantId);
         return {
             statusCode: 200,
             headers: {

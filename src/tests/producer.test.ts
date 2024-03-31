@@ -1,20 +1,19 @@
 // kiboWebhook
-import { EventBridge } from "aws-sdk";
-import kiboHandler from "../consumers/kibo";
+
 import { TenantConfiguration } from "../types/tenantConfiguration";
 
 import deliverySolutionsHandler from "../consumers/deliverySolutions";
 import {
   KiboApiContext,
-  initKiboApiContextFromHeaders,
+
 } from "../types/kiboContext";
 
-import { handler } from "../consumers/kibo";
+
 
 import { DeliverySolutionsOrderSync } from "../processors/deliverySolutionsOrderSync";
 
 import "global-agent/bootstrap";
-import { KiboCommerceService } from "../services/kiboCommerceService";
+
 import { KiboShipmentService } from "../services/kiboShipmentService";
 import { Context, EventBridgeEvent } from "aws-lambda";
 import { TenantConfigService } from "../services/tenantConfigurationService";
@@ -116,7 +115,7 @@ describe("Test Class", () => {
       isPickup: false,
     };
 
-    let event = {
+    const event = {
       event: "ORDER_CANCELLED",
       receivedAt: "March 12th 2024, 6:10:24 pm",
       trackingNumber: "2188147903",

@@ -1,5 +1,6 @@
 service: serverless-1
-frameworkVersion: '3'	
+frameworkVersion: '3'		
+useDotenv: true
 provider:
 
   name: aws
@@ -8,6 +9,9 @@ provider:
     DYNAMODB_TABLE: ${self:service}-${sls:stage}
     EVENTBRIDGE_BUS_NAME: ${self:service}-${sls:stage}
     CONTENT_BUCKET_NAME: ${self:service}-${sls:stage}-website-bucket
+    KIBO_HOME_HOST: ${env:KIBO_HOME_HOST}
+    KIBO_CLIENT_ID: ${env:KIBO_CLIENT_ID}
+    KIBO_CLIENT_SECRET: ${env:KIBO_CLIENT_SECRET}
   httpApi:
       cors: true
   iam:    

@@ -18,6 +18,7 @@ class KiboShipmentService {
         const configuration = new rest_sdk_1.Configuration({
             tenantId: (_a = context.tenantId) === null || _a === void 0 ? void 0 : _a.toString(),
             siteId: (_b = context.siteId) === null || _b === void 0 ? void 0 : _b.toString(),
+            fetchApi: fetch,
             catalog: (_c = context.catalogId) === null || _c === void 0 ? void 0 : _c.toString(),
             masterCatalog: (_d = context.masterCatalogId) === null || _d === void 0 ? void 0 : _d.toString(),
             sharedSecret: config.kiboCredentials.clientSecret,
@@ -35,7 +36,7 @@ class KiboShipmentService {
     }
     cancel(shipmentNumber) {
         return __awaiter(this, void 0, void 0, function* () {
-            let requestParams = {
+            const requestParams = {
                 shipmentNumber,
                 cancelShipmentRequestDto: {
                     canceledReason: {
@@ -48,7 +49,7 @@ class KiboShipmentService {
     }
     sendToCustomerCare(shipmentNumber) {
         return __awaiter(this, void 0, void 0, function* () {
-            let requestParams = {
+            const requestParams = {
                 shipmentNumber,
                 rejectShipmentRequestDto: {
                     rejectedReason: {
@@ -62,7 +63,7 @@ class KiboShipmentService {
     }
     execute(shipmentNumber, taskName) {
         return __awaiter(this, void 0, void 0, function* () {
-            let requestParams = {
+            const requestParams = {
                 shipmentNumber,
                 taskName,
                 taskCompleteDto: {
@@ -72,13 +73,13 @@ class KiboShipmentService {
             return yield this.shipmentApi.execute(requestParams);
         });
     }
-    updateTracking(deliverySolutionsOrder, kiboShipment) {
+    updateTracking() {
         return __awaiter(this, void 0, void 0, function* () {
-            const shipmentPatch = {
-                shopperNotes: {
-                    deliveryInstructions: deliverySolutionsOrder.trackingUrl,
-                },
-            };
+            // const shipmentPatch: any = {
+            //   shopperNotes: {
+            //     deliveryInstructions: deliverySolutionsOrder.trackingUrl,
+            //   },
+            // };
             return Promise.resolve({});
             // return await this.shipmentApi.replaceShipment({
             //   shipmentNumber: kiboShipment.shipmentNumber || 0,

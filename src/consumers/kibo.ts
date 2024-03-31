@@ -1,29 +1,40 @@
-import { EventBridgeEvent, Context } from "aws-lambda";
+import { EventBridgeEvent } from "aws-lambda";
 import { TenantConfigService } from "../services/tenantConfigurationService";
 import { DeliverySolutionsOrderSync } from "../processors/deliverySolutionsOrderSync";
 import { initKiboApiContextFromHeaders } from "../types/kiboContext";
+import { ApplicationEventProcessor } from "../processors/applicationEventProcessor";
 
 export const handler = async (
-  event: EventBridgeEvent<string, any>,
-  context: Context
+  event: EventBridgeEvent<string, any>
+
 ) => {
   const detail = event.detail;
   const body = detail?.body;
   const extendedProperties = body?.extendedProperties;
   const apiContext = initKiboApiContextFromHeaders(detail.headers);
-  if ( apiContext.tenantId == undefined ) {
+  if (apiContext.tenantId == undefined) {
     console.error("No tenantId found in headers");
     return;
   }
-  const config = await new TenantConfigService().getConfigByKiboTenant(
-    apiContext.tenantId 
+  const tenantConfig = await new TenantConfigService().getConfigByKiboTenant(
+    apiContext.tenantId
   );
 
   console.log(event, event.detail.body);
-  if (!config) {
+  if (!tenantConfig) {
     console.error("No config found fer tenant", apiContext.tenantId);
     return;
   }
+  const eventType: string = event["detail-type"];
+  const eventDomain = eventType.split(".")[0];
+
+  if (eventDomain == "application") {
+    console.log("proccing application event");
+    return await new ApplicationEventProcessor({ tenantConfig }).processEvent(
+      event
+    );
+  }
+
   if (event["detail-type"] != "shipment.workflowstatechanged") {
     console.log("Not a shipment.workflowstatechanged event");
     return;
@@ -44,42 +55,45 @@ export const handler = async (
     return;
   }
   const shipmentNumber = parseInt(body.entityId);
-  if ( isNaN(shipmentNumber) ) {
+  if (isNaN(shipmentNumber)) {
     console.error("Invalid shipmentNumber", body.entityId);
     return;
   }
 
   const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
-    config,
+    tenantConfig,
     apiContext
   );
 
-
-  try{
-  switch (newState) {
-    case "ACCEPTED_SHIPMENT": //todo make configurable
-      await deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
-      break;
-    case "BACKORDER": //todo make configurable
-      await deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
-      break;  
-    case "PARTIAL_INVENTORY_NOPE": //todo make configurable
-      await deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
-      break;
-    case "READY_FOR_DELIVERY":
-      await deliverySolutionsOrderSync.releaseShipment(body.entityId);
-      break;
-    default:
-      console.log("Not an actionable state change event");
-      return;
-  }
+  
 
 
+
+
+
+  try {
+    switch (newState) {
+      case "PRE_ACCEPT_SHIPMENT": //todo make configurable
+        break;
+      case "ACCEPTED_SHIPMENT": //todo make configurable
+        await deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
+        break;
+      case "BACKORDER": //todo make configurable
+        await deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
+        break;
+      case "PARTIAL_INVENTORY_NOPE": //todo make configurable
+        await deliverySolutionsOrderSync.updateShipmentItems(body.entityId);
+        break;
+      case "READY_FOR_DELIVERY":
+        await deliverySolutionsOrderSync.releaseShipment(body.entityId);
+        break;
+      default:
+        console.log("Not an actionable state change event");
+        return;
+    }
   } catch (e) {
     console.error("Error creating order", e);
   }
-
-  
 };
 
 export default handler;

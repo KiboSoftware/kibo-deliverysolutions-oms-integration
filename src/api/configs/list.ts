@@ -1,11 +1,24 @@
-import { APIGatewayProxyHandler, APIGatewayEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyHandlerV2,  APIGatewayProxyResultV2 , APIGatewayProxyEventV2} from 'aws-lambda';
 import  {TenantConfigService}  from '../../services/tenantConfigurationService';
-import { TenantConfiguration } from '../../types/tenantConfiguration';  
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
+import { KiboAppConfigurationService } from '../../services/kiboAppConfigurationService';
+import { JwtService } from '../../services/jwtService';
+
+export const handler: APIGatewayProxyHandlerV2 = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
+  const sharedSecret =  KiboAppConfigurationService.getCurrent().clientSecret;  
+  const jwtService = new JwtService(sharedSecret);
+  const token = jwtService.readJwtFromEvent(event);
+  if (!token) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ message: 'Unauthorized' }),
+    };
+  }
+  const tenantId: number = token.tenantId;
+
   const tenantConfigService = new TenantConfigService(); 
   console.log('list');
   try {
-    const configs = await tenantConfigService.getAllConfigs();
+    const configs = await tenantConfigService.getAllConfigs(tenantId);
 
     return {
       statusCode: 200,

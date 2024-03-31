@@ -1,11 +1,10 @@
-import { EventBridgeEvent, Context } from "aws-lambda";
+import { EventBridgeEvent } from "aws-lambda";
 import { TenantConfigService } from "../services/tenantConfigurationService";
 import { DeliverySolutionsOrderSync } from "../processors/deliverySolutionsOrderSync";
 import { initKiboApiContextFromTenantConfig } from "../types/kiboContext";
 
 export const handler = async (
-  event: EventBridgeEvent<string, any>,
-  context: Context
+  event: EventBridgeEvent<string, any>
 ) => {
   const detail = event.detail;
   const dsTenant = detail.tenantId;
@@ -24,12 +23,12 @@ export const handler = async (
     switch (event["detail-type"]) {
       case "ORDER_CANCELLED":
         await deliverySolutionsOrderSync.cancelKiboShipment(
-          event.detail.orderExternalId,
+          event.detail,
         );
         break;
       case "ORDER_DELIVERED":
         await deliverySolutionsOrderSync.markKiboShipmentDelivered(
-          event.detail.orderExternalId
+          event.detail
         );
         break;
       default:

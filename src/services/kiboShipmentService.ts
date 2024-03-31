@@ -6,7 +6,6 @@ import {
 } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
-import { DeliverySolutionsOrder } from "../types/deliverySolutions";
 
 export class KiboShipmentService {
   shipmentApi: ShipmentApi;
@@ -16,6 +15,7 @@ export class KiboShipmentService {
     const configuration = new Configuration({
       tenantId: context.tenantId?.toString(),
       siteId: context.siteId?.toString(),
+      fetchApi: fetch,
       catalog: context.catalogId?.toString(),
       masterCatalog: context.masterCatalogId?.toString(),
       sharedSecret: config.kiboCredentials.clientSecret,
@@ -33,7 +33,7 @@ export class KiboShipmentService {
   }
 
   async cancel(shipmentNumber: number): Promise<EntityModelOfShipment> {
-    let requestParams = {
+    const requestParams = {
       shipmentNumber,
       cancelShipmentRequestDto: {
         canceledReason: {
@@ -46,7 +46,7 @@ export class KiboShipmentService {
   async sendToCustomerCare(
     shipmentNumber: number
   ): Promise<EntityModelOfShipment> {
-    let requestParams = {
+    const requestParams = {
       shipmentNumber,
       rejectShipmentRequestDto: {
         rejectedReason: {
@@ -62,7 +62,7 @@ export class KiboShipmentService {
     shipmentNumber: number,
     taskName: string
   ): Promise<EntityModelOfShipment> {
-    let requestParams = {
+    const requestParams = {
       shipmentNumber,
       taskName,
       taskCompleteDto: {
@@ -73,15 +73,14 @@ export class KiboShipmentService {
     return await this.shipmentApi.execute(requestParams);
   }
 
-  async updateTracking(
-    deliverySolutionsOrder: DeliverySolutionsOrder,
-    kiboShipment: EntityModelOfShipment
-  ): Promise<EntityModelOfShipment> {
-    const shipmentPatch: any = {
-      shopperNotes: {
-        deliveryInstructions: deliverySolutionsOrder.trackingUrl,
-      },
-    };
+  async updateTracking(): // deliverySolutionsOrder: DeliverySolutionsOrder,
+  // kiboShipment: EntityModelOfShipment
+  Promise<EntityModelOfShipment> {
+    // const shipmentPatch: any = {
+    //   shopperNotes: {
+    //     deliveryInstructions: deliverySolutionsOrder.trackingUrl,
+    //   },
+    // };
     return Promise.resolve({} as EntityModelOfShipment);
     // return await this.shipmentApi.replaceShipment({
     //   shipmentNumber: kiboShipment.shipmentNumber || 0,

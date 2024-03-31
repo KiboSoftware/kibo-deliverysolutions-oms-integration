@@ -1,6 +1,6 @@
 // kiboWebhook
 import { EventBridge } from "aws-sdk";
-import kiboHandler from "../consumers/kibo";
+
 const eventBridge = new EventBridge();
 
 export const handler = async (
@@ -10,7 +10,7 @@ export const handler = async (
   const body = JSON.parse(event.body || "");
   const busName = process.env.EVENTBRIDGE_BUS_NAME || "default";
   const eventType = body.topic || "unknown";
-  
+
   const resp = await eventBridge
     .putEvents({
       Entries: [

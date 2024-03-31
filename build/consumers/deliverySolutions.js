@@ -13,7 +13,7 @@ exports.handler = void 0;
 const tenantConfigurationService_1 = require("../services/tenantConfigurationService");
 const deliverySolutionsOrderSync_1 = require("../processors/deliverySolutionsOrderSync");
 const kiboContext_1 = require("../types/kiboContext");
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const detail = event.detail;
     const dsTenant = detail.tenantId;
     const config = yield new tenantConfigurationService_1.TenantConfigService().getConfigByDsTenant(dsTenant);
@@ -26,10 +26,10 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
     try {
         switch (event["detail-type"]) {
             case "ORDER_CANCELLED":
-                yield deliverySolutionsOrderSync.cancelKiboShipment(event.detail.orderExternalId);
+                yield deliverySolutionsOrderSync.cancelKiboShipment(event.detail);
                 break;
             case "ORDER_DELIVERED":
-                yield deliverySolutionsOrderSync.markKiboShipmentDelivered(event.detail.orderExternalId);
+                yield deliverySolutionsOrderSync.markKiboShipmentDelivered(event.detail);
                 break;
             default:
                 console.log("Unknown event type", event["detail-type"]);

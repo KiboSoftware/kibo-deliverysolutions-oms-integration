@@ -4,6 +4,9 @@ export interface TenantConfiguration {
   kiboSites: number[];
   dsTenant: string;
   locationMapping: LocationMapping[];
+  createOrderEvent: string;
+  orderReadyEvent: string;
+  tipProductCode: string;
   kiboCredentials: {
     clientId: string;
     clientSecret: string;

@@ -6,19 +6,20 @@ import { DeliverySolutionsOrder, TimeWindow } from "../types/deliverySolutions";
 import { mapKiboShipmentToDsOrder } from "../mappers/shippingMappers";
 import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import {
-  Order,
-  OrderApi,
+  Order
 } from "@kibocommerce/rest-sdk/clients/Commerce";
 import { KiboCommerceService } from "../services/kiboCommerceService";
 import { mapTimeWindows } from "../mappers/orderMappers";
 export class DeliverySolutionsOrderSync {
-  static mockImplementation(arg0: () => { markKiboShipmentDelivered: jest.Mock<any, any, any>; }) {
-      throw new Error("Method not implemented.");
-  }
+  
   deliverySolutionsService: DeliverySolutionsService;
   kiboShipmentService: KiboShipmentService;
   kiboOrderService: KiboCommerceService;
   tenantConfig: TenantConfiguration;
+  createOrderEvent: string;
+  shipmentCancelEvents: string[];
+  orderReadyEvent: string;
+  orderUpdateEvents: string[];
 
   constructor(
     tenantConfig: TenantConfiguration,
@@ -34,6 +35,35 @@ export class DeliverySolutionsOrderSync {
       tenantConfig,
       kiboApiContext
     );
+    this.tenantConfig = tenantConfig;
+    this.createOrderEvent = tenantConfig.createOrderEvent || "ACCEPTED_SHIPMENT";
+    this.shipmentCancelEvents = ['CANCELED', 'BACKORDER'];
+    this.orderReadyEvent = tenantConfig.orderReadyEvent || "READY_FOR_DELIVERY";
+    this.orderUpdateEvents =  ["PARTIAL_INVENTORY_NOPE"];
+  }
+
+  async route(event:any): Promise<any>{
+    const body = event.body;
+    const extendedProperties = event.body?.extendedProperties;    
+    const newState = extendedProperties.find(
+        (prop: { key: string }) => prop.key === "newState"
+      )?.value;    
+    const shipmentNumber = parseInt(body.entityId);
+
+    if( newState == this.createOrderEvent){
+      return await this.processShipmentCreate(shipmentNumber);
+    }
+    if(this.shipmentCancelEvents.includes(newState)){
+      return await this.processShipmentCancel(shipmentNumber);
+    }
+    if(this.orderUpdateEvents.includes(newState)){
+      return await this.updateShipmentItems(shipmentNumber);
+    }
+    if(newState == this.orderReadyEvent){
+      return await this.releaseShipment(shipmentNumber);
+    }
+    return Promise.resolve();
+
   }
 
   async processShipmentCancel(shipmentNumber: number): Promise<any> {
@@ -94,7 +124,7 @@ export class DeliverySolutionsOrderSync {
 
     const windows = mapTimeWindows(order, true);
 
-    let dsOrder =  await this.createOrder(shipment, windows.dropoffTime, windows.pickupTime);
+    const dsOrder =  await this.createOrder(shipment, windows.dropoffTime, windows.pickupTime);
     console.log("created dsOrder", dsOrder);
     return dsOrder;
   }
@@ -113,13 +143,13 @@ export class DeliverySolutionsOrderSync {
     return parseInt(dsId.replace("kibo_", ""));
   }
 
-  async cancelKiboShipment ( orderExternalId: string): Promise<any> {
-    const shipmentId = this.toKiboShipmentId(orderExternalId);
+  async cancelKiboShipment ( dsOrder: DeliverySolutionsOrder): Promise<any> {
+    const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
     return await this.kiboShipmentService.cancel(shipmentId);
   }
-  async markKiboShipmentDelivered ( orderExternalId: string): Promise<any> {
-    const shipmentId = this.toKiboShipmentId(orderExternalId);
-    return await this.kiboShipmentService.execute(shipmentId,'Provide to Customer');
+  async markKiboShipmentDelivered ( dsOrder: DeliverySolutionsOrder): Promise<any> {
+    const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
+    return await this.kiboShipmentService.execute(shipmentId,'Provided to Customer');
   }
 
   async createOrder(

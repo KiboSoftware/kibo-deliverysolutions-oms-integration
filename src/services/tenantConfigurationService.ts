@@ -1,10 +1,5 @@
 import { DynamoDB } from "aws-sdk";
-import {
-  APIGatewayProxyHandler,
-  APIGatewayEvent,
-  Context,
-  APIGatewayProxyResult,
-} from "aws-lambda";
+
 import { TenantConfiguration } from "../types/tenantConfiguration";
 
 export class TenantConfigService {

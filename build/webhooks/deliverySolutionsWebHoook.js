@@ -12,12 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const aws_sdk_1 = require("aws-sdk");
 const sqs = new aws_sdk_1.SQS();
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
-    const body = JSON.parse(event.body || '{}');
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    const body = JSON.parse(event.body || "{}");
     const params = {
         MessageBody: JSON.stringify({
-            kind: 'ds',
-            webHook: body
+            kind: "ds",
+            webHook: body,
         }),
         QueueUrl: process.env.QUEUE_URL,
     };
@@ -25,14 +25,16 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         yield sqs.sendMessage(params).promise();
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: 'Message sent to the queue.' }),
+            body: JSON.stringify({ message: "Message sent to the queue." }),
         };
     }
     catch (error) {
         console.error(error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'An error occurred when sending the message to the queue.' }),
+            body: JSON.stringify({
+                message: "An error occurred when sending the message to the queue.",
+            }),
         };
     }
 });

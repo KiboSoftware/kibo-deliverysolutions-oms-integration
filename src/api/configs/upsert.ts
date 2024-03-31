@@ -1,8 +1,8 @@
-import { APIGatewayProxyHandler, APIGatewayEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyHandler, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import  {TenantConfigService}  from '../../services/tenantConfigurationService';
 import { TenantConfiguration } from '../../types/tenantConfiguration';  
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayEvent, ): Promise<APIGatewayProxyResult> => {
   const tenantConfigService = new TenantConfigService();
   const tenantConfig = JSON.parse(event.body || '{}') as TenantConfiguration;
   const id: string = event.pathParameters?.id || '';  
