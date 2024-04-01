@@ -13,16 +13,22 @@ exports.handler = void 0;
 const tenantConfigurationService_1 = require("../services/tenantConfigurationService");
 const deliverySolutionsOrderSync_1 = require("../processors/deliverySolutionsOrderSync");
 const kiboContext_1 = require("../types/kiboContext");
+const kiboAppConfigurationService_1 = require("../services/kiboAppConfigurationService");
+const appConfig = kiboAppConfigurationService_1.KiboAppConfigurationService.getCurrent();
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const detail = event.detail;
     const dsTenant = detail.tenantId;
-    const config = yield new tenantConfigurationService_1.TenantConfigService().getConfigByDsTenant(dsTenant);
-    if (!config) {
+    const tenantConfig = yield new tenantConfigurationService_1.TenantConfigService().getConfigByDsTenant(dsTenant);
+    if (!tenantConfig) {
         console.error(`No config found for tenant ${dsTenant}`);
         return;
     }
-    const apiContext = (0, kiboContext_1.initKiboApiContextFromTenantConfig)(config);
-    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(config, apiContext);
+    const apiContext = (0, kiboContext_1.initKiboApiContextFromTenantConfig)(tenantConfig);
+    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync({
+        tenantConfig,
+        apiContext,
+        appConfig,
+    });
     try {
         switch (event["detail-type"]) {
             case "ORDER_CANCELLED":

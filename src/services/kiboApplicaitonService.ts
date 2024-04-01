@@ -1,72 +1,109 @@
-import { APIAuthClient } from '@kibocommerce/sdk-authentication'
-import { TenantConfiguration } from '../types/tenantConfiguration'
+import { APIAuthClient } from "@kibocommerce/sdk-authentication";
+import { TenantConfiguration } from "../types/tenantConfiguration";
+import { KiboAppConfiguration } from "./kiboAppConfigurationService";
+import { KiboApiContext } from "../types/kiboContext";
 
+import * as runtime from "@kibocommerce/rest-sdk/client-runtime";
 
+import { Configuration } from "@kibocommerce/rest-sdk";
 
+export class KiboInstalledAppSettingsApi extends runtime.BaseAPI {
+  constructor(configuration: Configuration) {
+    super(configuration);
+    this.basePathTemplate = "https://t{tenantId}.{env}.mozu.com/api";
+  }
+
+  async getSettings(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<KiboInstalledAppSettings>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    await this.addAuthorizationHeaders(headerParameters);
+
+    const response = await this.request(
+      {
+        path: `/commerce/settings/applications`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response);
+  }
+
+  async updateSettings(
+    body: KiboInstalledAppSettings,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<KiboInstalledAppSettings>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    await this.addAuthorizationHeaders(headerParameters);
+
+    const response = await this.request(
+      {
+        path: `/commerce/settings/applications`,
+        method: "PUT",
+        headers: headerParameters,
+        query: queryParameters,
+        body: body,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response);
+  }
+}
 export class KiboApplicationService {
-    client: APIAuthClient
-    auth_token_call : Promise<any>
-    apiUrl: string
-    constructor(config: TenantConfiguration) {
-       
-        this.client = new APIAuthClient({
-            clientId: config.kiboCredentials.clientId,
-            sharedSecret: config.kiboCredentials.clientSecret,
-            authHost: config.kiboCredentials.api,
-            apiHost: config.dsCredentials.api
-        },fetch);
-        this.client.authenticate
-        this.apiUrl = `${config.kiboCredentials.api}/api/commerce/applications/settings`;        
-       
-    }  
-    async getAccessToken(): Promise<string>{
-        this.auth_token_call = this.auth_token_call || this.client.getAccessToken();
-        return this.auth_token_call;
-    }
-    async getSettings(): Promise<KiboAppSettings>{
-        const token = await this.getAccessToken()
-        const response = await fetch(this.apiUrl, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-      
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-      
-          const data: KiboAppSettings = await response.json();
-          return data;
-        
-    }
-    async updateSettings(newSettings: KiboAppSettings): Promise<KiboAppSettings> {
-        const token = await this.getAccessToken();
-        const response = await fetch(this.apiUrl, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(newSettings)
-        });
-      
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      
-        const data: KiboAppSettings = await response.json();
-        return data;
-      }      
-    
+  client: KiboInstalledAppSettingsApi;
+
+  constructor({    
+    apiContext,
+    appConfig,
+  }: {
+    apiContext: KiboApiContext;
+    appConfig: KiboAppConfiguration;
+  }) {
+    const configuration = new Configuration({
+      tenantId: apiContext.tenantId?.toString(),
+      fetchApi: fetch,
+      siteId: apiContext.siteId?.toString(),
+      catalog: apiContext.catalogId?.toString(),
+      masterCatalog: apiContext.masterCatalogId?.toString(),
+      sharedSecret: appConfig.clientSecret,
+      clientId: appConfig.clientId,
+      authHost: appConfig.homeHost,
+    });
+    this.client = new KiboInstalledAppSettingsApi(configuration);
+  }
+
+  async getSettings(): Promise<KiboInstalledAppSettings> {
+    const resp = await this.client.getSettings();
+    return await resp.value();
+  }
+
+  async updateSettings(
+    newSettings: KiboInstalledAppSettings
+  ): Promise<KiboInstalledAppSettings> {
+    const resp = await this.client.updateSettings(newSettings);
+    return await resp.value();
+  }
 }
 
-export interface KiboAppSettings {
-    appId: string;
-    uiConfigurationUrl: string;
-    capabilities: any[];
-    isExtension: boolean;
-    initialized: boolean;
-    enabled: boolean;
-    appKey: string;
-    isExtensionCertified: boolean;
-  }
+export interface KiboInstalledAppSettings {
+  appId: string;
+  uiConfigurationUrl: string;
+  capabilities: any[];
+  isExtension: boolean;
+  initialized: boolean;
+  enabled: boolean;
+  appKey: string;
+  isExtensionCertified: boolean;
+}

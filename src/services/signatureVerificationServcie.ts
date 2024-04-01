@@ -27,7 +27,7 @@ export class SignatureVerificationService {
     date: string,
     body: string,
     signature: string,
-    timeLimitMinutes: number = 15
+    timeLimitMinutes: number = 2000
   ): void {
     const timeStamp = new Date(date);
     if (isNaN(timeStamp.getTime())) {
@@ -41,6 +41,7 @@ export class SignatureVerificationService {
     const appHashKey = this.createAppHashKey(sharedSecret);
     const hash = this.computeHash(appHashKey, date, body);
     
+    console.log({hash, signature,  appHashKey, date, body});
     
     if ( hash !== signature){
         throw new Error("Invalid signature");        

@@ -11,11 +11,7 @@ describe("TenantConfigService", () => {
           apiKey: "API_KEY",
         },
         dsTenant: "kibo",
-        kiboCredentials: {
-          api: "https://api.kibocommerce.com",
-          clientId: "CLIENT_ID",
-          clientSecret: "CLIENT_SECRET",
-        },
+       
         locationMapping: [
           {
             kibo: "70672974049",
@@ -47,11 +43,7 @@ describe("TenantConfigService", () => {
         apiKey: "API_KEY",
       },
       dsTenant: "kibo",
-      kiboCredentials: {
-        api: "https://api.kibocommerce.com",
-        clientId: "CLIENT_ID",
-        clientSecret: "CLIENT_SECRET",
-      },
+      
       locationMapping: [
         {
           kibo: "70672974049",
@@ -60,6 +52,9 @@ describe("TenantConfigService", () => {
       ],
       kiboSites: [65126],
       kiboTenant: 0,
+      createOrderEvent: "",
+      orderReadyEvent: "",
+      tipProductCode: ""
     };
 
     

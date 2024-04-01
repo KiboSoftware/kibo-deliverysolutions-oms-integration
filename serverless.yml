@@ -12,6 +12,7 @@ provider:
     KIBO_HOME_HOST: ${env:KIBO_HOME_HOST}
     KIBO_CLIENT_ID: ${env:KIBO_CLIENT_ID}
     KIBO_CLIENT_SECRET: ${env:KIBO_CLIENT_SECRET}
+    HOSTING_PATH: ${sls:stage, 'dev'}
   httpApi:
       cors: true
   iam:    
@@ -35,28 +36,34 @@ custom:
     bucketName: ${self:provider.environment.CONTENT_BUCKET_NAME}
     distributionFolder: config-ui/build
 functions:
-  getConfigs:
-    handler: build/api/configs/list.handler
-    events:
-      - httpApi:
-          path: /configs
-          method: get  
-  getConfigById:
-    handler: build/api/configs/getById.handler
-    events:
-      - httpApi:
-          path: /configs/{id}
-          method: get
-  updateConfig:
-    handler: build/api/configs/upsert.handler
-    events:
-      - httpApi:
-          path: /configs/{id}
-          method: put
-  catchAll:
-    handler: build/api/catchAll.handler
-    events:
-      - httpApi: '*'
+  app:
+    handler: build/express/index.handler
+    events: 
+      - http:
+          method: ANY   
+          path: /{proxy+}
+  # getConfigs:
+  #   handler: build/api/configs/list.handler
+  #   events:
+  #     - httpApi:
+  #         path: /configs
+  #         method: get  
+  # getConfigById:
+  #   handler: build/api/configs/getById.handler
+  #   events:
+  #     - httpApi:
+  #         path: /configs/{id}
+  #         method: get
+  # updateConfig:
+  #   handler: build/api/configs/upsert.handler
+  #   events:
+  #     - httpApi:
+  #         path: /configs/{id}
+  #         method: put
+  # catchAll:
+  #   handler: build/api/catchAll.handler
+  #   events:
+  #     - httpApi: '*'
   dsWebhook:
     handler: build/producers/deliverySolutions.handler
     events:

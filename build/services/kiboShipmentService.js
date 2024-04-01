@@ -13,18 +13,17 @@ exports.KiboShipmentService = void 0;
 const rest_sdk_1 = require("@kibocommerce/rest-sdk");
 const Fulfillment_1 = require("@kibocommerce/rest-sdk/clients/Fulfillment");
 class KiboShipmentService {
-    constructor(config, context) {
+    constructor({ apiContext, appConfig, }) {
         var _a, _b, _c, _d;
         const configuration = new rest_sdk_1.Configuration({
-            tenantId: (_a = context.tenantId) === null || _a === void 0 ? void 0 : _a.toString(),
-            siteId: (_b = context.siteId) === null || _b === void 0 ? void 0 : _b.toString(),
+            tenantId: (_a = apiContext.tenantId) === null || _a === void 0 ? void 0 : _a.toString(),
+            siteId: (_b = apiContext.siteId) === null || _b === void 0 ? void 0 : _b.toString(),
             fetchApi: fetch,
-            catalog: (_c = context.catalogId) === null || _c === void 0 ? void 0 : _c.toString(),
-            masterCatalog: (_d = context.masterCatalogId) === null || _d === void 0 ? void 0 : _d.toString(),
-            sharedSecret: config.kiboCredentials.clientSecret,
-            clientId: config.kiboCredentials.clientId,
-            authHost: config.kiboCredentials.api,
-            apiHost: config.dsCredentials.api,
+            catalog: (_c = apiContext.catalogId) === null || _c === void 0 ? void 0 : _c.toString(),
+            masterCatalog: (_d = apiContext.masterCatalogId) === null || _d === void 0 ? void 0 : _d.toString(),
+            sharedSecret: appConfig.clientSecret,
+            clientId: appConfig.clientId,
+            authHost: appConfig.homeHost,
         });
         this.shipmentApi = new Fulfillment_1.ShipmentApi(configuration);
         this.shipmentNotesApi = new Fulfillment_1.ShipmentNotesApi(configuration);

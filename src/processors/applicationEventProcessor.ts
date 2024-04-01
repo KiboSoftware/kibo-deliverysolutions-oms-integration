@@ -1,4 +1,6 @@
+import { KiboAppConfiguration } from "../services/kiboAppConfigurationService";
 import { KiboApplicationService } from "../services/kiboApplicaitonService";
+import { KiboApiContext } from "../types/kiboContext";
 
 import { TenantConfiguration } from "../types/tenantConfiguration";
 
@@ -6,9 +8,20 @@ export class ApplicationEventProcessor {
   tenantConfig: TenantConfiguration;
 
   appService: KiboApplicationService;
-  constructor({ tenantConfig }: { tenantConfig: TenantConfiguration }) {
+  constructor({
+    tenantConfig,
+    apiContext,
+    appConfig,
+  }: {
+    tenantConfig: TenantConfiguration;
+    apiContext: KiboApiContext;
+    appConfig: KiboAppConfiguration;
+  }) {
     this.tenantConfig = tenantConfig;
-    this.appService = new KiboApplicationService(tenantConfig);
+    this.appService = new KiboApplicationService({
+      apiContext,
+      appConfig,
+    });
   }
 
   async processEvent(event: any): Promise<any> {

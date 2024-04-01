@@ -17,10 +17,13 @@ import "global-agent/bootstrap";
 import { KiboShipmentService } from "../services/kiboShipmentService";
 import { Context, EventBridgeEvent } from "aws-lambda";
 import { TenantConfigService } from "../services/tenantConfigurationService";
+import { KiboAppConfiguration } from "../services/kiboAppConfigurationService";
+
 
 describe("Test Class", () => {
   let config: TenantConfiguration;
   let apiContext: KiboApiContext;
+  let appConfig : KiboAppConfiguration
 
   beforeEach(() => {
     config = {
@@ -30,11 +33,7 @@ describe("Test Class", () => {
         apiKey: process.env.DS_API_KEY || "",
       },
       dsTenant: "kibo",
-      kiboCredentials: {
-        api: process.env.KIBO_API_HOST || "",
-        clientId: process.env.KIBO_CLIENT_ID || "",
-        clientSecret: process.env.KIBO_CLIENT_SECRET || "",
-      },
+     
       locationMapping: [
         {
           kibo: "70672974049",
@@ -45,7 +44,11 @@ describe("Test Class", () => {
       kiboSites: [65126],
       kiboTenant: parseInt(process.env.KIBO_TENANT || "") || 0,
     };
-
+    appConfig ={
+      clientId: '',
+      clientSecret:'',
+      homeHost: '',
+    }
     apiContext = {
       tenantId: parseInt(process.env.KIBO_TENANT || "") || 0,
       siteId: 47032,
@@ -58,11 +61,9 @@ describe("Test Class", () => {
 
   test("test1", async () => {
     const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
-      config,
-      apiContext
-    );
+      { tenantConfig: config, apiContext: apiContext , appConfig:appConfig }    );
 
-    const kiboShipmentService = new KiboShipmentService(config, apiContext);
+    const kiboShipmentService = new KiboShipmentService({   apiContext , appConfig});
 
     const deliverySolutionsOrder = {
       pickupTime: {
@@ -258,10 +259,7 @@ describe("Test Class", () => {
       sentAt: "2024-03-12T23:10:24.486Z",
     };
     TenantConfigService.prototype.getConfigByDsTenant = ()=> Promise.resolve(config);
-    await deliverySolutionsHandler(
-      { detail: event, "detail-type": "ORDER_CANCELLED" } as EventBridgeEvent<string, any>,
-      {} as Context
-    );
+    await deliverySolutionsHandler({ detail: event, "detail-type": "ORDER_CANCELLED" } as EventBridgeEvent<string, any>);
     //const shipment = await deliverySolutionsOrderSync.processShipmentCreate(2);
     console.log("hi");
   }, 30000);

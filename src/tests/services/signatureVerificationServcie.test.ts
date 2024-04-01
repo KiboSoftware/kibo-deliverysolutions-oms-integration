@@ -45,15 +45,3 @@ describe("SignatureVerificationService", () => {
  
 });
 
-// hash zp3jnBdvuYJRpzo575S619sZw6vs/LdxM0TpB30mzEo= 
-// signature 5q1puT4J7oI8ah4x1/eyPnCJt4RkvQEIP+O/jyqGsJg= 
-// date Sat, 30 Mar 2024 20:01:49 GMT 
-// body eC12b2wtdGVuYW50LWRvbWFpbj10Mjg4NTQuc2FuZGJveC5tb3p1LmNvbSZ4LXZvbC1yZXR1cm4tdXJsPWh0dHBzJTNBJTJGJTJGdDI4ODU0LnNhbmRib3gubW96dS5jb20lMkZBZG1pbiUyRnMtNDcxMzclMkZjYXBhYmlsaXR5JTJGZWRpdCUyRmUzNTJlNzI4NGM3NDRhOWE4OThiMzhhYTljNDdkYzhkJTJGJTIzY29uZmlndXJl 
-// appHashKey a/xfQMToNm2kJgYJ9V8GMyhT4p5A0Q1LUkgAoWTFXKs= 
-// sharedSecret 8eaa7ed6961543b1b90cd92de677d197
-
-
-
-
-//     console.log("hash", hash , "signature", signature, "date", date, "body", body, "appHashKey", appHashKey, "sharedSecret", sharedSecret);
-

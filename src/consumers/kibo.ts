@@ -3,11 +3,9 @@ import { TenantConfigService } from "../services/tenantConfigurationService";
 import { DeliverySolutionsOrderSync } from "../processors/deliverySolutionsOrderSync";
 import { initKiboApiContextFromHeaders } from "../types/kiboContext";
 import { ApplicationEventProcessor } from "../processors/applicationEventProcessor";
-
-export const handler = async (
-  event: EventBridgeEvent<string, any>
-
-) => {
+import { KiboAppConfigurationService } from "../services/kiboAppConfigurationService";
+const appConfig = KiboAppConfigurationService.getCurrent();
+export const handler = async (event: EventBridgeEvent<string, any>) => {
   const detail = event.detail;
   const body = detail?.body;
   const extendedProperties = body?.extendedProperties;
@@ -30,9 +28,11 @@ export const handler = async (
 
   if (eventDomain == "application") {
     console.log("proccing application event");
-    return await new ApplicationEventProcessor({ tenantConfig }).processEvent(
-      event
-    );
+    return await new ApplicationEventProcessor({
+      tenantConfig,
+      appConfig,
+      apiContext,
+    }).processEvent(event);
   }
 
   if (event["detail-type"] != "shipment.workflowstatechanged") {
@@ -60,16 +60,11 @@ export const handler = async (
     return;
   }
 
-  const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
+  const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync({
     tenantConfig,
-    apiContext
-  );
-
-  
-
-
-
-
+    apiContext,
+    appConfig,
+  });
 
   try {
     switch (newState) {

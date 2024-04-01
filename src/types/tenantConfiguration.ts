@@ -4,21 +4,23 @@ export interface TenantConfiguration {
   kiboSites: number[];
   dsTenant: string;
   locationMapping: LocationMapping[];
-  createOrderEvent: string;
-  orderReadyEvent: string;
-  tipProductCode: string;
-  kiboCredentials: {
-    clientId: string;
-    clientSecret: string;
-    api: string;
-  };
-  dsCredentials: {
-    apiKey: string;
-    api: string;
-  };
+  createOrderEvent?: string;
+  orderReadyEvent?: string;
+  tipProductCode?: string;
+  // kiboCredentials: {
+  //   clientId: string;
+  //   clientSecret: string;
+  //   api: string;
+  // };
+  dsCredentials: dsCredentials;
 }
 
-interface LocationMapping {
+export interface LocationMapping {
   kibo: string;
   ds: string;
 }
+
+export interface dsCredentials {
+  apiKey: string;
+  api: string;
+};

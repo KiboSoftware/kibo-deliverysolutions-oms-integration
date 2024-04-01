@@ -112,15 +112,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
       </Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
-          {/* ID */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="ID"
-              value={formData.id}
-              onChange={(e) => handleChange("id", e.target.value)}
-            />
-          </Grid>
+         
           {/* DS Credentials */}
           <Grid item xs={12}>
             <Card>
@@ -172,17 +164,8 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                   Kibo Info
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Kibo Tenant"
-                      value={formData.kiboTenant}
-                      onChange={(e) =>
-                        handleChange("kiboTenant", Number(e.target.value))
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={7}>
+                  
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Kibo Sites (comma-separated)"
@@ -190,42 +173,18 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                       onChange={(e) => handleSiteChange(e.target.value)}
                     />
                   </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      label="API Host"
-                      value={formData.kiboCredentials.api}
-                      onChange={(e) =>
-                        handleChange("kiboCredentials.api", e.target.value)
-                      }
-                    />
+                  <Grid item xs={12} sm={6}>
+                   
+                  <TextField
+                    fullWidth
+                    label="Tip Product Code"
+                    value={formData.tipProductCode}
+                    onChange={(e) =>
+                      handleChange("tipProductCode", e.target.value)
+                    }
+                  />
                   </Grid>
-
-                  <Grid item xs={7}>
-                    <TextField
-                      fullWidth
-                      label="Kibo Client ID"
-                      value={formData.kiboCredentials.clientId}
-                      onChange={(e) =>
-                        handleChange("kiboCredentials.clientId", e.target.value)
-                      }
-                    />
-                  </Grid>
-
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      type="password"
-                      label="Kibo Client Secret"
-                      value={formData.kiboCredentials.clientSecret}
-                      onChange={(e) =>
-                        handleChange(
-                          "kiboCredentials.clientSecret",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </Grid>
+                  
                 </Grid>
               </CardContent>
             </Card>
@@ -259,19 +218,13 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Tip Product Code"
-                    value={formData.tipProductCode}
-                    onChange={(e) =>
-                      handleChange("tipProductCode", e.target.value)
-                    }
-                  />
+                 
                 </Grid>
                 </Grid>
               </CardContent>
             </Card>
           </Grid>
+
 
           {/* Location Mapping */}
           <Grid item xs={12}>
@@ -348,7 +301,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
               Save Changes
             </Button>
           </Grid>
-          <Grid item>
+          {/* <Grid item>
             <Button
               variant="outlined"
               sx={{ mt: 3 }}
@@ -356,7 +309,7 @@ const TenantConfigurationPage = ({ configuration, onSave }) => {
             >
               Cancel
             </Button>
-          </Grid>
+          </Grid> */}
         </Grid>
       </form>
     </Container>

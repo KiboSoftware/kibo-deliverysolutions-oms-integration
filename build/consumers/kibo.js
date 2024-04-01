@@ -14,6 +14,8 @@ const tenantConfigurationService_1 = require("../services/tenantConfigurationSer
 const deliverySolutionsOrderSync_1 = require("../processors/deliverySolutionsOrderSync");
 const kiboContext_1 = require("../types/kiboContext");
 const applicationEventProcessor_1 = require("../processors/applicationEventProcessor");
+const kiboAppConfigurationService_1 = require("../services/kiboAppConfigurationService");
+const appConfig = kiboAppConfigurationService_1.KiboAppConfigurationService.getCurrent();
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const detail = event.detail;
@@ -34,7 +36,11 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const eventDomain = eventType.split(".")[0];
     if (eventDomain == "application") {
         console.log("proccing application event");
-        return yield new applicationEventProcessor_1.ApplicationEventProcessor({ tenantConfig }).processEvent(event);
+        return yield new applicationEventProcessor_1.ApplicationEventProcessor({
+            tenantConfig,
+            appConfig,
+            apiContext,
+        }).processEvent(event);
     }
     if (event["detail-type"] != "shipment.workflowstatechanged") {
         console.log("Not a shipment.workflowstatechanged event");
@@ -57,7 +63,11 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         console.error("Invalid shipmentNumber", body.entityId);
         return;
     }
-    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync(tenantConfig, apiContext);
+    const deliverySolutionsOrderSync = new deliverySolutionsOrderSync_1.DeliverySolutionsOrderSync({
+        tenantConfig,
+        apiContext,
+        appConfig,
+    });
     try {
         switch (newState) {
             case "PRE_ACCEPT_SHIPMENT": //todo make configurable

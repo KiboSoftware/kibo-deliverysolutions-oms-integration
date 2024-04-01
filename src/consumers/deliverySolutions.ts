@@ -2,29 +2,29 @@ import { EventBridgeEvent } from "aws-lambda";
 import { TenantConfigService } from "../services/tenantConfigurationService";
 import { DeliverySolutionsOrderSync } from "../processors/deliverySolutionsOrderSync";
 import { initKiboApiContextFromTenantConfig } from "../types/kiboContext";
-
-export const handler = async (
-  event: EventBridgeEvent<string, any>
-) => {
+import { KiboAppConfigurationService } from "../services/kiboAppConfigurationService";
+const appConfig = KiboAppConfigurationService.getCurrent();
+export const handler = async (event: EventBridgeEvent<string, any>) => {
   const detail = event.detail;
   const dsTenant = detail.tenantId;
 
-  const config = await new TenantConfigService().getConfigByDsTenant(dsTenant);
-  if (!config) {
+  const tenantConfig = await new TenantConfigService().getConfigByDsTenant(
+    dsTenant
+  );
+  if (!tenantConfig) {
     console.error(`No config found for tenant ${dsTenant}`);
     return;
   }
-  const apiContext = initKiboApiContextFromTenantConfig(config);
-  const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync(
-    config,
-    apiContext
-  );
+  const apiContext = initKiboApiContextFromTenantConfig(tenantConfig);
+  const deliverySolutionsOrderSync = new DeliverySolutionsOrderSync({
+    tenantConfig,
+    apiContext,
+    appConfig,
+  });
   try {
     switch (event["detail-type"]) {
       case "ORDER_CANCELLED":
-        await deliverySolutionsOrderSync.cancelKiboShipment(
-          event.detail,
-        );
+        await deliverySolutionsOrderSync.cancelKiboShipment(event.detail);
         break;
       case "ORDER_DELIVERED":
         await deliverySolutionsOrderSync.markKiboShipmentDelivered(

@@ -6,22 +6,28 @@ import {
 } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
+import { KiboAppConfiguration } from "./kiboAppConfigurationService";
 
 export class KiboShipmentService {
   shipmentApi: ShipmentApi;
   shipmentNotesApi: ShipmentNotesApi;
 
-  constructor(config: TenantConfiguration, context: KiboApiContext) {
+  constructor({
+    apiContext,
+    appConfig,
+  }: {
+    apiContext: KiboApiContext;
+    appConfig: KiboAppConfiguration;
+  }) {
     const configuration = new Configuration({
-      tenantId: context.tenantId?.toString(),
-      siteId: context.siteId?.toString(),
+      tenantId: apiContext.tenantId?.toString(),
+      siteId: apiContext.siteId?.toString(),
       fetchApi: fetch,
-      catalog: context.catalogId?.toString(),
-      masterCatalog: context.masterCatalogId?.toString(),
-      sharedSecret: config.kiboCredentials.clientSecret,
-      clientId: config.kiboCredentials.clientId,
-      authHost: config.kiboCredentials.api,
-      apiHost: config.dsCredentials.api,
+      catalog: apiContext.catalogId?.toString(),
+      masterCatalog: apiContext.masterCatalogId?.toString(),
+      sharedSecret: appConfig.clientSecret,
+      clientId: appConfig.clientId,
+      authHost: appConfig.homeHost,
     });
     this.shipmentApi = new ShipmentApi(configuration);
     this.shipmentNotesApi = new ShipmentNotesApi(configuration);

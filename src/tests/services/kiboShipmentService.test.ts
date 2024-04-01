@@ -23,11 +23,7 @@ describe("KiboShipmentService", () => {
         apiKey: process.env.DS_API_KEY || "",
       },
       dsTenant: "kibo",
-      kiboCredentials: {
-        api: process.env.KIBO_API_HOST || "",
-        clientId: process.env.KIBO_CLIENT_ID || "",
-        clientSecret: process.env.KIBO_CLIENT_SECRET || "",
-      },
+      
       locationMapping: [
         {
           kibo: "70672974049",
