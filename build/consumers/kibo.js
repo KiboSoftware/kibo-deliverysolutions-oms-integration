@@ -35,12 +35,16 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const eventType = event["detail-type"];
     const eventDomain = eventType.split(".")[0];
     if (eventDomain == "application") {
-        console.log("proccing application event");
-        return yield new applicationEventProcessor_1.ApplicationEventProcessor({
-            tenantConfig,
-            appConfig,
-            apiContext,
-        }).processEvent(event);
+        try {
+            return yield new applicationEventProcessor_1.ApplicationEventProcessor({
+                tenantConfig,
+                appConfig,
+                apiContext,
+            }).processEvent(event.detail);
+        }
+        catch (e) {
+            console.error("Error processing application event", e);
+        }
     }
     if (event["detail-type"] != "shipment.workflowstatechanged") {
         console.log("Not a shipment.workflowstatechanged event");

@@ -6,7 +6,7 @@ This repository contains a serverless application built with TypeScript and AWS 
 
 The application is structured into several modules, each responsible for a specific functionality:
 
-- `src/api`: Contains the API configurations.
+- `src/express`: Contains the Express App to manage.
 - `src/consumers`: Contains the consumer services.
 - `src/mappers`: Contains the mapping functions to transform data between different formats.
 - `src/processors`: Contains the core business logic of the application.
@@ -37,9 +37,10 @@ Once the application is deployed, you can use the following endpoints:
 ## Endpoints
 * POST - https://{aws-api-gateway1}/dev/webhooks/ds
 * POST - https://{aws-api-gateway1}/dev/webhooks/kibo
-* GET - https://{aws-api-gateway2}/configs
-* GET - https://{aws-api-gateway2}/configs/{id}
-* PUT - https://{aws-api-gateway2}/configs/{id}
+* GET - https://{aws-api-gateway1}/dev/configs
+* GET - https://{aws-api-gateway1}/dev/configs/{id}
+* PUT - https://{aws-api-gateway1}/dev/configs/{id}
+* ANY - https://{aws-api-gateway1}/dev/* 
 
 ## Testing
 

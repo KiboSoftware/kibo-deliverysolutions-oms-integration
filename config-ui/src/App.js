@@ -4,11 +4,11 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import TenantConfigurationPage from "./tenantConfigurationPage";
 
 let empty = {
-  id: "",
-  kiboTenant:0 ,
+  id: "current",
+  kiboTenant: 0,
   kiboSites: [],
   dsTenant: "",
-  locationMapping: [], 
+  locationMapping: [],
   dsCredentials: {
     apiKey: "",
     api: null,
@@ -19,7 +19,6 @@ let empty = {
 };
 
 function App() {
-  
   const [selectedConfiguration, setSelectedConfiguration] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const getApi = () => {
@@ -31,19 +30,25 @@ function App() {
     fetch(`${getApi()}/current`)
       .then((response) => response.json())
       .then((data) => {
-        if ( data.dsCredentials == null){
+        if (data.dsCredentials == null) {
           data.dsCredentials = {
             apiKey: "",
             api: null,
-          }
+          };
         }
-        setSelectedConfiguration({...data});
+        if (data.kiboSites == null) {
+          data.kiboSites = [];
+        }
+        if (data.locationMapping == null) {
+          data.locationMapping = [];
+        }
+        setSelectedConfiguration({ ...data });
         setIsLoading(false);
       })
-      .catch((error) =>{       
-        setSelectedConfiguration({...empty});
+      .catch((error) => {
+        setSelectedConfiguration({ ...empty });
         setIsLoading(false);
-        console.error("Error:", error)
+        console.error("Error:", error);
       });
   }, []);
 
@@ -57,24 +62,27 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      const newConfiguration = response.json();
+      const newConfiguration = await response.json();
       setSelectedConfiguration(newConfiguration);
     } catch (error) {
       return console.error("Error:", error);
     }
   };
 
-
   return (
     <div>
-      {isLoading ? <div>Loading...</div> :  <TenantConfigurationPage
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <TenantConfigurationPage
           configuration={selectedConfiguration}
           onSave={saveConfiguration}
-        />}
+        />
+      )}
     </div>
   );
   // return (
-   
+
   // );
   // return (
   //   <div className="App">

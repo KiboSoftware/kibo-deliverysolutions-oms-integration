@@ -48,6 +48,8 @@
         "deploy-s3": "cd config-ui && npm run build && cd .. && serverless client deploy",
         "lint": "eslint src --ext .ts --ignore-pattern '*.test.ts'",
         "deploy-express": "sls deploy --function app",
-        "log-express": "sls logs -f app -t"
+        "deploy-ds-handler": "sls deploy --function dsEventHandler",
+        "log-express": "sls logs -f app -t",
+        "log-dsEventHandler": "sls logs -f dsEventHandler -t"
     }
 }

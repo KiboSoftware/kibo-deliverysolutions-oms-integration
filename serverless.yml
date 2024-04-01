@@ -42,28 +42,6 @@ functions:
       - http:
           method: ANY   
           path: /{proxy+}
-  # getConfigs:
-  #   handler: build/api/configs/list.handler
-  #   events:
-  #     - httpApi:
-  #         path: /configs
-  #         method: get  
-  # getConfigById:
-  #   handler: build/api/configs/getById.handler
-  #   events:
-  #     - httpApi:
-  #         path: /configs/{id}
-  #         method: get
-  # updateConfig:
-  #   handler: build/api/configs/upsert.handler
-  #   events:
-  #     - httpApi:
-  #         path: /configs/{id}
-  #         method: put
-  # catchAll:
-  #   handler: build/api/catchAll.handler
-  #   events:
-  #     - httpApi: '*'
   dsWebhook:
     handler: build/producers/deliverySolutions.handler
     events:

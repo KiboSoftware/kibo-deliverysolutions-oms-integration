@@ -32,20 +32,21 @@ export class ConfigApiHandler {
       res.status(401).send("Unauthorized");
       return;
     }
+    const settings = JSON.parse(req.body);
     const tenantId = req.auth.tenantId as number;
-    const config = req.body;
-    config.kiboTenant = tenantId;
-    config.id = tenantId.toString();
-
+ 
+    settings.kiboTenant = tenantId;
+    settings.id = tenantId.toString();
+    console.log("Upserting config", settings);
     try {
-      await this.tenantConfigService.upsert(config);
+      await this.tenantConfigService.upsert(settings);
     } catch (ex) {
-      console.error("Error upserting config", ex, config);
+      console.error("Error upserting config", ex, settings);
       res.status(500).send("Error upserting config");
       return;
     }
 
-    res.status(201).send(config);
+    res.status(201).send(settings);
   };
   list = async (req: JWTRequest, res: Response) => {
     if (!req.auth?.tenantId) {

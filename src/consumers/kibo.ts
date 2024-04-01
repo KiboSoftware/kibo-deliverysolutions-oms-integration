@@ -27,12 +27,15 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
   const eventDomain = eventType.split(".")[0];
 
   if (eventDomain == "application") {
-    console.log("proccing application event");
-    return await new ApplicationEventProcessor({
-      tenantConfig,
-      appConfig,
-      apiContext,
-    }).processEvent(event);
+    try {
+      return await new ApplicationEventProcessor({
+        tenantConfig,
+        appConfig,
+        apiContext,
+      }).processEvent(event.detail);
+    } catch (e) {
+      console.error("Error processing application event", e);
+    }
   }
 
   if (event["detail-type"] != "shipment.workflowstatechanged") {

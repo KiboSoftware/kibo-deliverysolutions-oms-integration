@@ -25,23 +25,24 @@ export class ApplicationEventProcessor {
   }
 
   async processEvent(event: any): Promise<any> {
-    switch (event.topic) {
+    console.log("Processing application event", event);
+    switch (event.body.topic) {
       case "application.installed":
       case "application.updated":
       case "application.upgraded":
-        return this.validateInstallation(event);
+        return await this.validateInstallation(event);
     }
-    return Promise.resolve();
   }
 
   async validateInstallation(event: any): Promise<any> {
+    console.log("Validating installation");
     const settings = await this.appService.getSettings();
+    console.log("before", settings);
     if (!settings.enabled || !settings.initialized) {
       settings.enabled = true;
       settings.initialized = true;
-      return this.appService.updateSettings(settings);
+      const after = await this.appService.updateSettings(settings);
+      console.log("after", after);
     }
-    console.log(event);
-    return Promise.resolve();
   }
 }

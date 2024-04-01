@@ -1,5 +1,3 @@
-import { APIAuthClient } from "@kibocommerce/sdk-authentication";
-import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboAppConfiguration } from "./kiboAppConfigurationService";
 import { KiboApiContext } from "../types/kiboContext";
 

@@ -158,7 +158,7 @@ export class DeliverySolutionsOrderSync {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
     return await this.kiboShipmentService.execute(
       shipmentId,
-      "Provided to Customer"
+      "Provide to Customer"
     );
   }
 
