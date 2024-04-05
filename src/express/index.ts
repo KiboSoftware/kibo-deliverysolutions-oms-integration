@@ -53,6 +53,8 @@ app.get("/configs/:id", configApiHandler.get);
 app.get("/configs", configApiHandler.list);
 app.put("/configs/:id", configApiHandler.put);
 app.post("/login", loginHandler.handle);
+app.get("/login_test", loginHandler.handle_test);
+
 app.get("*", staticHandler.handle);
 
 // Export your serverless app

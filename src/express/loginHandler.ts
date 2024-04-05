@@ -21,8 +21,7 @@ export class LoginHandler {
     this.sharedSecret = sharedSecret;
     this.signaturService = signaturService;
     this.jwtService = jwtService;
-    this.rootPath = '/'+ process.env.HOSTING_PATH
-
+    this.rootPath = "/" + process.env.HOSTING_PATH;
   }
 
   decodeBody2W(body: any): string {
@@ -49,6 +48,34 @@ export class LoginHandler {
     return unencodedParams;
   }
 
+  handle_test = (req: Request, res: Response) => {
+    const tenantId = parseInt(req.query.tenantId as any);
+    if (isNaN(tenantId)) {
+      console.error("Invalid tenantId:", tenantId);
+      res.status(401).send("Invalid tenantId");
+      return;
+    }
+    const sec = req.query.secret as string;
+    if (sec == this.sharedSecret) {
+      const jwt = this.jwtService.createJwt(tenantId);
+
+      res.cookie("jwt", jwt, {
+        path: this.rootPath,
+        sameSite: "none",
+        secure: true,
+      });
+      const redirect = this.rootPath.endsWith("/")
+        ? this.rootPath + "index.html"
+        : this.rootPath + "/index.html";
+      res.redirect(redirect);
+    }else{
+      
+        console.error("Invalid secs");
+        res.status(401).send("Invalid secs");
+        return;
+      
+    }
+  };
   handle = (req: Request, res: Response) => {
     const tenantId = parseInt(req.query.tenantId as any);
     req.body;
@@ -70,9 +97,15 @@ export class LoginHandler {
     );
 
     const jwt = this.jwtService.createJwt(tenantId);
-    
-    res.cookie("jwt", jwt, { path: this.rootPath, sameSite: "none", secure: true });
-    const redirect = this.rootPath.endsWith('/') ? this.rootPath + 'index.html' : this.rootPath + '/index.html';
+
+    res.cookie("jwt", jwt, {
+      path: this.rootPath,
+      sameSite: "none",
+      secure: true,
+    });
+    const redirect = this.rootPath.endsWith("/")
+      ? this.rootPath + "index.html"
+      : this.rootPath + "/index.html";
     res.redirect(redirect);
   };
 }
