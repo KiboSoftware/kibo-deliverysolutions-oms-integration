@@ -123,7 +123,7 @@ export class DeliverySolutionsOrderSync {
 
     const order = await this.getOrderById(shipment.orderId);
 
-    const windows = mapTimeWindows(order, true);
+    const windows = mapTimeWindows(order, false);
 
     const dsOrder = await this.createOrder(
       shipment,

@@ -15,7 +15,11 @@ export function mapTimeWindows(
 
   kiboOrder.attributes?.forEach((attribute) => {
     if (attribute?.values && attribute.values[0]) {
-      const time = Date.parse(attribute.values[0]?.toString().trim());
+      const rawValue = attribute.values[0]?.toString().trim();
+      let time = Date.parse(rawValue);
+      if (!time) {
+        time = parseInt(rawValue);
+      }
       if (!time) return;
       const code = attribute.fullyQualifiedName?.split("~")?.slice(-1)[0];
       switch (code?.toLowerCase()) {

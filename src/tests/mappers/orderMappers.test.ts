@@ -66,12 +66,12 @@ describe("mapTimeWindows", () => {
       },
     };
 
-    const result = mapTimeWindows(kiboOrder, true);
+    const result = mapTimeWindows(kiboOrder, false);
 
     expect(result.dropoffTime).toEqual(expectedTimeWindows.dropoffTime);
 
-    expect(result.pickupTime).not.toEqual(null);
-    expect(result.pickupTime).not.toEqual(undefined);
+    
+    expect(result.pickupTime).toEqual(undefined);
 
   });
 

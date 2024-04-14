@@ -1,5 +1,5 @@
 {
-    "name": "serverless-1",
+    "name": "kibo-deliverysolutions-oms-integration",
     "version": "1.0.0",
     "author": "",
     "license": "MIT",
@@ -43,7 +43,7 @@
         "serverless-http": "^3.2.0"
     },
     "scripts": {
-        "test": "jest",
+        "test": "jest --testPathIgnorePatterns /config-ui",
         "deploy": "sls deploy",
         "deploy-s3": "cd config-ui && npm run build && cd .. && serverless client deploy",
         "lint": "eslint src --ext .ts --ignore-pattern '*.test.ts'",

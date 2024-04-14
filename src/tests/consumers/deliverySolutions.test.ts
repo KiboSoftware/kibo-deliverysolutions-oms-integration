@@ -1,189 +1,96 @@
-// // import { Context, EventBridgeEvent } from "aws-lambda";
-// // import { TenantConfigService } from "../../services/tenantConfigurationService";
-// // import { DeliverySolutionsOrderSync } from "../../processors/deliverySolutionsOrderSync";
-// // jest.mock("../services/tenantConfigService");
-// // jest.mock("../services/deliverySolutionsOrderSync");
+import { EventBridgeEvent } from "aws-lambda";
+import handler from "../../consumers/deliverySolutions";
+import { DeliverySolutionsOrderSync } from "../../processors/deliverySolutionsOrderSync";
+import {
+  KiboAppConfiguration,
+  KiboAppConfigurationService,
+} from "../../services/kiboAppConfigurationService";
 
-// // describe("handler", () => {
-// //   let event: EventBridgeEvent<string, any>;
-// //   let context: Context;
+import { KiboApiContext } from "../../types/kiboContext";
+import { TenantConfiguration } from "../../types/tenantConfiguration";
+import { TenantConfigService } from "../../services/tenantConfigurationService";
 
-// //   beforeEach(() => {
-// //     event = {
-// //       detail: {
-// //         tenantId: "123",
-// //         orderExternalId: "456",
-// //       },
-// //       "detail-type": "ORDER_CANCELLED",
-// //     };
-// //     context = {} as Context;
-// //   });
+jest.mock("../services/tenantConfigurationService");
+jest.mock("../processors/deliverySolutionsOrderSync");
+jest.mock("../services/kiboAppConfigurationService");
 
-// //   afterEach(() => {
-// //     jest.clearAllMocks();
-// //   });
+describe("deliverySolutions", () => {
+  let mockTenantConfigService: jest.Mocked<TenantConfigService>;
+  let mockDeliverySolutionsOrderSync: jest.Mocked<DeliverySolutionsOrderSync>;
+  let mockKiboAppConfigurationService: jest.Mocked<KiboAppConfigurationService>;
+  let tenantConfig: TenantConfiguration = {
+    id: "",
+    kiboTenant: 0,
+    kiboSites: [],
+    dsTenant: "",
+    locationMapping: [],
+    dsCredentials: undefined,
+  };
+  let apiContext: KiboApiContext = {};
+  let appConfig: KiboAppConfiguration = {
+    clientId: "",
+    clientSecret: "",
+    homeHost: "",
+  };
 
-// //   test("should cancel Kibo shipment when event type is ORDER_CANCELLED", async () => {
-// //     const config = { /* mocked config object */ };
-// //     const apiContext = { /* mocked apiContext object */ };
-// //     const deliverySolutionsOrderSync = { cancelKiboShipment: jest.fn() };
+  beforeEach(() => {
+    mockTenantConfigService =
+      new TenantConfigService() as jest.Mocked<TenantConfigService>;
+    mockDeliverySolutionsOrderSync = new DeliverySolutionsOrderSync({
+      tenantConfig,
+      apiContext,
+      appConfig,
+    }) as jest.Mocked<DeliverySolutionsOrderSync>;
+    mockKiboAppConfigurationService =
+      new KiboAppConfigurationService() as jest.Mocked<KiboAppConfigurationService>;
 
-// //     TenantConfigService.prototype.getConfigByDsTenant.mockResolvedValue(config);
-// //     DeliverySolutionsOrderSync.mockImplementation(() => deliverySolutionsOrderSync);
+    jest
+      .spyOn(TenantConfigService.prototype, "getConfigByDsTenant")
+      .mockResolvedValue(tenantConfig);
+    jest
+      .spyOn(DeliverySolutionsOrderSync.prototype, "cancelKiboShipment")
+      .mockResolvedValue(mockDeliverySolutionsOrderSync);
+    jest
+      .spyOn(DeliverySolutionsOrderSync.prototype, "markKiboShipmentDelivered")
+      .mockResolvedValue(mockDeliverySolutionsOrderSync);
+    jest
+      .spyOn(KiboAppConfigurationService, "getCurrent")
+      .mockReturnValue(appConfig);
+  });
 
-// //     await handler(event, context);
+  it("should handle ORDER_CANCELLED event", async () => {
+    const event= {
+      "detail-type": "ORDER_CANCELLED",
+      detail: {
+        tenantId: "testTenant",
+        id: "",
+        version: "",
+        account: "",
+        time: "",
+        region: "",
+        source: "",
+      },
+    };
 
-// //     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-// //     expect(DeliverySolutionsOrderSync).toHaveBeenCalledWith(config, apiContext);
-// //     expect(deliverySolutionsOrderSync.cancelKiboShipment).toHaveBeenCalledWith("456");
-// //   });
+    await handler(event as EventBridgeEvent<string, any> );
 
-// //   test("should mark Kibo shipment as delivered when event type is ORDER_DELIVERED", async () => {
-// //     event["detail-type"] = "ORDER_DELIVERED";
-// //     const config = { /* mocked config object */ };
-// //     const apiContext = { /* mocked apiContext object */ };
-// //     const deliverySolutionsOrderSync = { markKiboShipmentDelivered: jest.fn() };
+    expect(
+      mockDeliverySolutionsOrderSync.cancelKiboShipment
+    ).toHaveBeenCalledWith(event.detail);
+  });
 
-// //     TenantConfigService.prototype.getConfigByDsTenant.mockResolvedValue(config);
-// //     DeliverySolutionsOrderSync.mockImplementation(() => deliverySolutionsOrderSync);
+  it("should handle ORDER_DELIVERED event", async () => {
+    const event = {
+      "detail-type": "ORDER_DELIVERED",
+      detail: { tenantId: "testTenant" },
+    };
 
-// //     await handler(event, context);
+    await handler(event as EventBridgeEvent<string, any>);
 
-// //     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-// //     expect(DeliverySolutionsOrderSync).toHaveBeenCalledWith(config, apiContext);
-// //     expect(deliverySolutionsOrderSync.markKiboShipmentDelivered).toHaveBeenCalledWith("456");
-// //   });
+    expect(
+      mockDeliverySolutionsOrderSync.markKiboShipmentDelivered
+    ).toHaveBeenCalledWith(event.detail);
+  });
 
-// //   test("should log error when no config found for tenant", async () => {
-// //     TenantConfigService.prototype.getConfigByDsTenant.mockResolvedValue(null);
-// //     console.error = jest.fn();
-
-// //     await handler(event, context);
-
-// //     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-// //     expect(console.error).toHaveBeenCalledWith("No config found for tenant 123");
-// //   });
-
-// //   test("should log error when an unknown event type is received", async () => {
-// //     event["detail-type"] = "UNKNOWN_EVENT_TYPE";
-// //     console.log = jest.fn();
-
-// //     await handler(event, context);
-
-// //     expect(console.log).toHaveBeenCalledWith("Unknown event type", "UNKNOWN_EVENT_TYPE");
-// //   });
-
-// //   test("should log error when an error occurs during event processing", async () => {
-// //     const error = new Error("Something went wrong");
-// //     console.log = jest.fn();
-// //     TenantConfigService.prototype.getConfigByDsTenant.mockRejectedValue(error);
-
-// //     await handler(event, context);
-
-// //     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-// //     expect(console.log).toHaveBeenCalledWith("Error processing event", error);
-// //   });
-// // });import { Context, EventBridgeEvent } from "aws-lambda";
-// import { TenantConfigService } from "../../services/tenantConfigurationService";
-// import { DeliverySolutionsOrderSync } from "../../processors/deliverySolutionsOrderSync";
-// import { handler } from "../../consumers/deliverySolutions";
-// import { Context, EventBridgeEvent } from "aws-lambda";
-
-// jest.mock("../../services/tenantConfigurationService", () => {
-//     return {
-//         TenantConfigService: jest.fn().mockImplementation(() => {
-//             return {
-//                 getConfigByDsTenant: jest.fn()
-//             };
-//         })
-//     };
-// });
-// jest.mock("../../processors/deliverySolutionsOrderSync");
-
-// describe("handler", () => {
-//   let event: EventBridgeEvent<string, any>;
-//   let context: Context;
-
-//   beforeEach(() => {
-//     event = {
-    
-//         id: "7bf73129-1428-4cd3-a780-95db273d1602",
-//         version: "0",
-//         account: "123456789012",
-//         time: "2017-12-22T18:43:48Z",
-//         region: "us-west-1",
-//         source: "kibo",
-//       detail: {
-//         tenantId: "123",
-//         orderExternalId: "456",
-//       },
-//       "detail-type": "ORDER_CANCELLED",
-//     } as EventBridgeEvent<string, any>;
-//     context = {} as Context;
-//   });
-
-//   afterEach(() => {
-//     jest.clearAllMocks();
-//   });
-
-//   test("should cancel Kibo shipment when event type is ORDER_CANCELLED", async () => {
-//     const config = { /* mocked config object */ };
-//     const apiContext = { /* mocked apiContext object */ };
-//     const deliverySolutionsOrderSync = { cancelKiboShipment: jest.fn() };
-
-//     TenantConfigService.prototype.getConfigByDsTenant.mockResolvedValue(config);
-//     DeliverySolutionsOrderSync.mockImplementation(() => deliverySolutionsOrderSync);
-
-//     await handler(event, context);
-
-//     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-//     expect(DeliverySolutionsOrderSync).toHaveBeenCalledWith(config, apiContext);
-//     expect(deliverySolutionsOrderSync.cancelKiboShipment).toHaveBeenCalledWith("456");
-//   });
-
-//   test("should mark Kibo shipment as delivered when event type is ORDER_DELIVERED", async () => {
-//     event["detail-type"] = "ORDER_DELIVERED";
-//     const config = { /* mocked config object */ };
-//     const apiContext = { /* mocked apiContext object */ };
-//     const deliverySolutionsOrderSync = { markKiboShipmentDelivered: jest.fn() };
-
-//     TenantConfigService.prototype.getConfigByDsTenant.mockResolvedValue(config);
-//     DeliverySolutionsOrderSync.mockImplementation(() => deliverySolutionsOrderSync);
-
-//     await handler(event, context);
-
-//     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-//     expect(DeliverySolutionsOrderSync).toHaveBeenCalledWith(config, apiContext);
-//     expect(deliverySolutionsOrderSync.markKiboShipmentDelivered).toHaveBeenCalledWith("456");
-//   });
-
-//     const mockGetConfigByDsTenant = jest.fn().mockResolvedValue(null);
-//     TenantConfigService.prototype.getConfigByDsTenant = mockGetConfigByDsTenant;
-//     console.error = jest.fn();
-
-//     await handler(event, context);
-
-//     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-//     expect(console.error).toHaveBeenCalledWith("No config found for tenant 123");
-//   });
-
-//   test("should log error when an unknown event type is received", async () => {
-//     event["detail-type"] = "UNKNOWN_EVENT_TYPE";
-//     console.log = jest.fn();
-
-//     await handler(event, context);
-
-//     expect(console.log).toHaveBeenCalledWith("Unknown event type", "UNKNOWN_EVENT_TYPE");
-//   });
-
-//   test("should log error when an error occurs during event processing", async () => {
-//     const error = new Error("Something went wrong");
-//     console.log = jest.fn();
-//     TenantConfigService.prototype.getConfigByDsTenant.mockRejectedValue(error);
-
-//     await handler(event, context);
-
-//     expect(TenantConfigService.prototype.getConfigByDsTenant).toHaveBeenCalledWith("123");
-//     expect(console.log).toHaveBeenCalledWith("Error processing event", error);
-//   });
-// });
+  // Add more tests for other cases
+});
