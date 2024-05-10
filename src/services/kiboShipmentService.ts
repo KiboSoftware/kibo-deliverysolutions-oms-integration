@@ -3,6 +3,7 @@ import {
   EntityModelOfShipment,
   ShipmentApi,
   ShipmentNotesApi,
+  shipmentNotesApiParams,
 } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
@@ -31,11 +32,24 @@ export class KiboShipmentService {
     });
     this.shipmentApi = new ShipmentApi(configuration);
     this.shipmentNotesApi = new ShipmentNotesApi(configuration);
+   
   }
   async getShipmentById(
     shipmentNumber: number
   ): Promise<EntityModelOfShipment> {
     return await this.shipmentApi.getShipment({ shipmentNumber });
+  }
+
+  async addNote (shipmentNumber: number, noteText:string) : Promise<any>{
+
+    const newNoteRequest = {
+      shipmentNumber,
+      shipmentNoteDto:{
+        noteText
+      }
+    } as shipmentNotesApiParams.NewShipmentNoteRequest
+    const result = await this.shipmentNotesApi.newShipmentNote(newNoteRequest);
+    return result;
   }
 
   async cancel(shipmentNumber: number): Promise<EntityModelOfShipment> {

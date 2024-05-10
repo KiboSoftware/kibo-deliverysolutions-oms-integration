@@ -32,6 +32,7 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
         );
         break;
       default:
+        await deliverySolutionsOrderSync.logEvent ( event["detail-type"], event.detail);
         console.log("Unknown event type", event["detail-type"]);
         break;
     }

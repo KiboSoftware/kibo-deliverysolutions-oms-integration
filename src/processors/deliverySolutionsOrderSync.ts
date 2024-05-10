@@ -9,6 +9,7 @@ import { Order } from "@kibocommerce/rest-sdk/clients/Commerce";
 import { KiboCommerceService } from "../services/kiboCommerceService";
 import { mapTimeWindows } from "../mappers/orderMappers";
 import { KiboAppConfiguration } from "../services/kiboAppConfigurationService";
+import { PromoteMode } from "aws-sdk/clients/mq";
 export class DeliverySolutionsOrderSync {
   deliverySolutionsService: DeliverySolutionsService;
   kiboShipmentService: KiboShipmentService;
@@ -19,15 +20,7 @@ export class DeliverySolutionsOrderSync {
   orderReadyEvent: string;
   orderUpdateEvents: string[];
 
-  constructor({
-    tenantConfig,
-    apiContext,
-    appConfig,
-  }: {
-    tenantConfig: TenantConfiguration;
-    apiContext: KiboApiContext;
-    appConfig: KiboAppConfiguration;
-  }) {
+  constructor({ tenantConfig, apiContext, appConfig }: { tenantConfig: TenantConfiguration; apiContext: KiboApiContext; appConfig: KiboAppConfiguration }) {
     this.tenantConfig = tenantConfig;
     this.deliverySolutionsService = new DeliverySolutionsService(tenantConfig);
     this.kiboShipmentService = new KiboShipmentService({
@@ -35,10 +28,9 @@ export class DeliverySolutionsOrderSync {
       appConfig,
     });
     this.kiboOrderService = new KiboCommerceService({ apiContext, appConfig });
-    
+
     this.tenantConfig = tenantConfig;
-    this.createOrderEvent =
-      tenantConfig.createOrderEvent || "ACCEPTED_SHIPMENT";
+    this.createOrderEvent = tenantConfig.createOrderEvent || "ACCEPTED_SHIPMENT";
     this.shipmentCancelEvents = ["CANCELED", "BACKORDER"];
     this.orderReadyEvent = tenantConfig.orderReadyEvent || "READY_FOR_DELIVERY";
     this.orderUpdateEvents = ["PARTIAL_INVENTORY_NOPE"];
@@ -47,9 +39,7 @@ export class DeliverySolutionsOrderSync {
   async route(event: any): Promise<any> {
     const body = event.body;
     const extendedProperties = event.body?.extendedProperties;
-    const newState = extendedProperties.find(
-      (prop: { key: string }) => prop.key === "newState"
-    )?.value;
+    const newState = extendedProperties.find((prop: { key: string }) => prop.key === "newState")?.value;
     const shipmentNumber = parseInt(body.entityId);
 
     if (newState == this.createOrderEvent) {
@@ -73,9 +63,7 @@ export class DeliverySolutionsOrderSync {
       return;
     }
     console.log("candeling order", "kibo_" + shipmentNumber.toString());
-    return await this.deliverySolutionsService.cancelOrder(
-      "kibo_" + shipmentNumber.toString()
-    );
+    return await this.deliverySolutionsService.cancelOrder("kibo_" + shipmentNumber.toString());
   }
   async releaseShipment(shipmentNumber: number): Promise<any> {
     const kiboShipment = await this.getShipmentById(shipmentNumber);
@@ -90,9 +78,7 @@ export class DeliverySolutionsOrderSync {
     } as any as DeliverySolutionsOrder;
 
     console.log("releasing order", deliveryOrder.orderExternalId);
-    deliveryOrder = await this.deliverySolutionsService.editOrder(
-      deliveryOrder
-    );
+    deliveryOrder = await this.deliverySolutionsService.editOrder(deliveryOrder);
     console.log("released order", deliveryOrder);
   }
   async updateShipmentItems(shipmentNumber: number): Promise<any> {
@@ -101,10 +87,7 @@ export class DeliverySolutionsOrderSync {
       return;
     }
 
-    const mappedOrder = mapKiboShipmentToDsOrder(
-      kiboShipment,
-      this.tenantConfig
-    );
+    const mappedOrder = mapKiboShipmentToDsOrder({ kiboShipment, tenantConfig: this.tenantConfig, dropoffTime, pickupTime, notifyEmail, notifySms });
 
     const deliveryOrder = {
       orderExternalId: mappedOrder.orderExternalId,
@@ -121,21 +104,15 @@ export class DeliverySolutionsOrderSync {
       return;
     }
 
-    const order = await this.getOrderById(shipment.orderId);
+    //const order = await this.getOrderById(shipment.orderId);
 
-    const windows = mapTimeWindows(order, false);
+    
 
-    const dsOrder = await this.createOrder(
-      shipment,
-      windows.dropoffTime,
-      windows.pickupTime
-    );
+    const dsOrder = await this.createOrder(shipment);
     console.log("created dsOrder", dsOrder);
     return dsOrder;
   }
-  async getShipmentById(
-    kiboShipmentId: number
-  ): Promise<EntityModelOfShipment> {
+  async getShipmentById(kiboShipmentId: number): Promise<EntityModelOfShipment> {
     return await this.kiboShipmentService.getShipmentById(kiboShipmentId);
   }
   async getOrderById(kiboOrderId: string): Promise<Order> {
@@ -152,30 +129,19 @@ export class DeliverySolutionsOrderSync {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
     return await this.kiboShipmentService.cancel(shipmentId);
   }
-  async markKiboShipmentDelivered(
-    dsOrder: DeliverySolutionsOrder
-  ): Promise<any> {
+  async markKiboShipmentDelivered(dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
-    return await this.kiboShipmentService.execute(
-      shipmentId,
-      "Provide to Customer"
-    );
+    return await this.kiboShipmentService.execute(shipmentId, "Provide to Customer");
+  }
+  async logEvent( event:string, dsOrder: DeliverySolutionsOrder):Promise<any> {
+    const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
+    return await this.kiboShipmentService.addNote(shipmentId, event);
   }
 
-  async createOrder(
-    kiboShipment: EntityModelOfShipment,
-    dropOff?: TimeWindow,
-    pickup?: TimeWindow
-  ): Promise<DeliverySolutionsOrder> {
-    const mappedOrder = mapKiboShipmentToDsOrder(
-      kiboShipment,
-      this.tenantConfig,
-      dropOff,
-      pickup
-    );
+  async createOrder(kiboShipment: EntityModelOfShipment): Promise<DeliverySolutionsOrder> {
+    const mappedOrder = mapKiboShipmentToDsOrder({ kiboShipment, tenantConfig: this.tenantConfig });
 
-    const deliverySolutionsOrder =
-      await this.deliverySolutionsService.createOrder(mappedOrder);
+    const deliverySolutionsOrder = await this.deliverySolutionsService.createOrder(mappedOrder);
     console.log("deliverySolutionsOrder", deliverySolutionsOrder);
     if (deliverySolutionsOrder.trackingUrl) {
       await this.kiboShipmentService.updateTracking();
