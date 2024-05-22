@@ -50,6 +50,7 @@ functions:
           path: /{proxy+}
   dsWebhook:
     handler: src/producers/deliverySolutions.handler
+    timeout: 60 
     events:
       - http:
           path: /webhooks/ds

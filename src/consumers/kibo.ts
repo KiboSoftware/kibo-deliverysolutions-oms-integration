@@ -38,6 +38,8 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
     }
   }
 
+ 
+
   if (event["detail-type"] != "shipment.workflowstatechanged") {
     console.log("Not a shipment.workflowstatechanged event");
     return;
@@ -76,6 +78,7 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
       case "ACCEPTED_SHIPMENT": //todo make configurable
         await deliverySolutionsOrderSync.processShipmentCreate(body.entityId);
         break;
+      case "CANCELED":
       case "BACKORDER": //todo make configurable
         await deliverySolutionsOrderSync.processShipmentCancel(body.entityId);
         break;

@@ -110,7 +110,7 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
         phoneNumber: deliveryContact?.phoneNumbers?.mobile || deliveryContact?.phoneNumbers?.home || deliveryContact?.phoneNumbers?.work,
         countryCode: deliveryContact?.address?.countryCode?.toUpperCase() ,
       }),
-      email: deliveryContact?.email,
+      email: deliveryContact?.email || kiboShipment.email || kiboOrder.email,
       notifySms: notifySettings?.notifySms,
       notifyEmail: notifySettings?.notifyEmail,
     },
