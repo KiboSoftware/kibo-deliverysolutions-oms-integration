@@ -43,6 +43,7 @@ custom:
 functions:
   app:
     handler: src/express/index.handler
+    timeout: 60 
     events: 
       - http:
           method: ANY   
@@ -55,12 +56,14 @@ functions:
           method: post
   kiboWebhook:
     handler: src/producers/kibo.handler
+    timeout: 60 
     events:
       - http:
           path: /webhooks/kibo
           method: post
   dsEventHandler:
     handler: src/consumers/deliverySolutions.handler
+    timeout: 60 
     events:
       - eventBridge:
           eventBus: ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
@@ -69,6 +72,7 @@ functions:
               - ds
   kiboEventHandler:
     handler: src/consumers/kibo.handler
+    timeout: 60 
     events:
       - eventBridge:
           eventBus:  ${self:provider.environment.EVENTBRIDGE_BUS_NAME}

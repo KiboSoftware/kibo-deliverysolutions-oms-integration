@@ -2,7 +2,8 @@
   "name": "config-ui",
   "version": "0.1.0",
   "homepage": "/dev",
-  "proxy2": "https://g90izyb8qg.execute-api.us-east-1.amazonaws.com",
+  "proxy": "http://localhost:3000",
+  "proxy2": "https://oxdvnxgbge.execute-api.us-east-1.amazonaws.com",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.4",

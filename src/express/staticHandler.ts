@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 const bucketName = process.env.CONTENT_BUCKET_NAME;
-import { S3 } from "aws-sdk";
+
 export class StaticHandler {
-  s3: S3;
-  constructor({ s3 }: { s3: S3 }) {
+  s3: S3Client;
+  constructor({ s3 }: { s3: S3Client }) {
     this.s3 = s3;
   }
   handle = async (req: Request, res: Response) => {
@@ -15,21 +15,19 @@ export class StaticHandler {
         Key: path,
       };
       console.log("Getting object from S3:", getObjectParams);
-      const { Body, ContentType } = await this.s3
-        .getObject(getObjectParams)
-        .promise();
+      const { Body, ContentType } = await this.s3.send(new GetObjectCommand(getObjectParams));
 
       res.setHeader("Content-Type", ContentType);
-      res.status(200).send(Body);
+      res.status(200).send(await Body.transformToString());
     } catch (error) {
-      const { Body, ContentType } = await this.s3
-        .getObject({
+      const { Body, ContentType } = await this.s3.send(
+        new GetObjectCommand({
           Bucket: bucketName,
           Key: "index.html",
         })
-        .promise();
+      );
       res.setHeader("Content-Type", ContentType);
-      res.status(200).send(Body);
+      res.status(200).send(await Body.transformToString());
       return;
 
       console.error("Error retrieving object from S3:", error, {

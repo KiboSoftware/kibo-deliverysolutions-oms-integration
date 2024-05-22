@@ -7,7 +7,7 @@ import { JwtService } from "../services/jwtService";
 import { LoginHandler } from "./loginHandler";
 import { SignatureVerificationService } from "../services/signatureVerificationServcie";
 import { StaticHandler } from "./staticHandler";
-import { S3 } from "aws-sdk";
+import { S3Client } from "@aws-sdk/client-s3";
 import { TenantConfigService } from "../services/tenantConfigurationService";
 import { ConfigApiHandler } from "./configApiHandler";
 import cookieParser from "cookie-parser";
@@ -25,7 +25,7 @@ const loginHandler = new LoginHandler({
 });
 
 const staticHandler = new StaticHandler({
-  s3: new S3(),
+  s3: new S3Client(),
 });
 
 const configApiHandler = new ConfigApiHandler({

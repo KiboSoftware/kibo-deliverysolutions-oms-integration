@@ -49,7 +49,12 @@ export class LoginHandler {
   }
 
   handle_test = (req: Request, res: Response) => {
-    const tenantId = parseInt(req.query.tenantId as any);
+    const lowerCaseQuery = Object.entries(req.query).reduce((result, [key, value]) => {
+      result[key.toLowerCase()] = value;
+      return result;
+    }, {} as Record<string, any>);
+    
+    const tenantId = parseInt(lowerCaseQuery['tenantid'] as any);
     if (isNaN(tenantId)) {
       console.error("Invalid tenantId:", tenantId);
       res.status(401).send("Invalid tenantId");

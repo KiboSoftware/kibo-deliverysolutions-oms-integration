@@ -1,7 +1,7 @@
-import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillment/models";
+import { EntityModelOfShipment, FulfillmentAPIProductionProfileItemGoodsTypeEnum } from "@kibocommerce/rest-sdk/clients/Fulfillment/models";
 import { DeliverySolutionsOrder, KiboDataBlock, TimeWindow } from "../types/deliverySolutions";
 import { TenantConfiguration } from "../types/tenantConfiguration";
-import parsePhoneNumber, { CountryCode, isSupportedCountry } from "libphonenumber-js";
+import parsePhoneNumber, { isSupportedCountry } from "libphonenumber-js";
 import { Order } from "@kibocommerce/rest-sdk/clients/Commerce";
 
 function getImageUrl(url: string | null): string {
@@ -45,13 +45,13 @@ function mapPackages({ kiboShipment, tenantConfig, kiboDataBlock }: { kiboShipme
     },
   ];
 }
-function mapKiboDataBlock({ data, attributes }: { data?: any; attributes?: any }): KiboDataBlock {
-  if (data?.KiboDataBlock) {
-    return JSON.parse(data.KiboDataBlock) as KiboDataBlock;
+function mapKiboDataBlock(entity:any): KiboDataBlock {
+  if (entity?.data?.KiboDataBlock) {
+    return JSON.parse(entity?.data.KiboDataBlock) as KiboDataBlock;
   }
 
-  if (data.dropoffTime) {
-    return data as KiboDataBlock;
+  if (entity?.data?.dropoffTime) {
+    return entity?.data as KiboDataBlock;
   }
 
   return;
@@ -133,7 +133,7 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
     itemList:
       kiboShipment.items
         ?.filter((item)=>{
-          item.goodsType != FulfillmentAPIProductionProfileItemGoodsTypeEnum.Service
+          return item.goodsType != FulfillmentAPIProductionProfileItemGoodsTypeEnum.Service
         }).map((item) => ({
         quantity: item.quantity || 0,
         size: {
