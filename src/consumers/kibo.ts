@@ -90,7 +90,7 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
         return;
     }
   } catch (e) {
-    console.error("Error creating order", e);
+    console.error("Error creating order.", e);
   }
 };
 

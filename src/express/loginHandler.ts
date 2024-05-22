@@ -79,7 +79,7 @@ export class LoginHandler {
   handle = (req: Request, res: Response) => {
     const tenantId = parseInt(req.query.tenantId as any);
     req.body;
-    console.log({ type: typeof req.body, reqBody: req.body });
+    
 
     const body = this.decodeBody(req.body);
     if (isNaN(tenantId)) {

@@ -1,10 +1,5 @@
 import { Configuration } from "@kibocommerce/rest-sdk";
-import {
-  EntityModelOfShipment,
-  ShipmentApi,
-  ShipmentNotesApi,
-  shipmentNotesApiParams,
-} from "@kibocommerce/rest-sdk/clients/Fulfillment";
+import { EntityModelOfShipment, ShipmentApi, ShipmentNotesApi, ShipmentDataApi, shipmentNotesApiParams } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
 import { KiboAppConfiguration } from "./kiboAppConfigurationService";
@@ -12,14 +7,9 @@ import { KiboAppConfiguration } from "./kiboAppConfigurationService";
 export class KiboShipmentService {
   shipmentApi: ShipmentApi;
   shipmentNotesApi: ShipmentNotesApi;
+  shipmentDataApi: ShipmentDataApi;
 
-  constructor({
-    apiContext,
-    appConfig,
-  }: {
-    apiContext: KiboApiContext;
-    appConfig: KiboAppConfiguration;
-  }) {
+  constructor({ apiContext, appConfig }: { apiContext: KiboApiContext; appConfig: KiboAppConfiguration }) {
     const configuration = new Configuration({
       tenantId: apiContext.tenantId?.toString(),
       siteId: apiContext.siteId?.toString(),
@@ -32,24 +22,30 @@ export class KiboShipmentService {
     });
     this.shipmentApi = new ShipmentApi(configuration);
     this.shipmentNotesApi = new ShipmentNotesApi(configuration);
-   
+    this.shipmentDataApi = new ShipmentDataApi(configuration);
   }
-  async getShipmentById(
-    shipmentNumber: number
-  ): Promise<EntityModelOfShipment> {
+  async getShipmentById(shipmentNumber: number): Promise<EntityModelOfShipment> {
     return await this.shipmentApi.getShipment({ shipmentNumber });
   }
 
-  async addNote (shipmentNumber: number, noteText:string) : Promise<any>{
-
+  async addNote(shipmentNumber: number, noteText: string): Promise<any> {
     const newNoteRequest = {
       shipmentNumber,
-      shipmentNoteDto:{
-        noteText
-      }
-    } as shipmentNotesApiParams.NewShipmentNoteRequest
+      shipmentNoteDto: {
+        noteText,
+      },
+    } as shipmentNotesApiParams.NewShipmentNoteRequest;
     const result = await this.shipmentNotesApi.newShipmentNote(newNoteRequest);
     return result;
+  }
+
+  async appendLog(shipmentNumber: number, text: string): Promise<any> {
+    const existing: any = (await this.shipmentDataApi.getShipmentData({ shipmentNumber })) || {};
+    const eventNumber = Object.keys(existing).filter((key) => key.startsWith("event")).length + 1;
+    const data: any = {};
+    data[`event_${eventNumber}`] = `${new Date().toISOString()} ${text}`;
+    
+    return await this.shipmentDataApi.replaceShipmentData({ shipmentNumber, merge: true, data });
   }
 
   async cancel(shipmentNumber: number): Promise<EntityModelOfShipment> {
@@ -63,9 +59,7 @@ export class KiboShipmentService {
     };
     return await this.shipmentApi.cancelShipment(requestParams);
   }
-  async sendToCustomerCare(
-    shipmentNumber: number
-  ): Promise<EntityModelOfShipment> {
+  async sendToCustomerCare(shipmentNumber: number): Promise<EntityModelOfShipment> {
     const requestParams = {
       shipmentNumber,
       rejectShipmentRequestDto: {
@@ -78,10 +72,7 @@ export class KiboShipmentService {
     return await this.shipmentApi.customerCareShipment(requestParams);
   }
 
-  async execute(
-    shipmentNumber: number,
-    taskName: string
-  ): Promise<EntityModelOfShipment> {
+  async execute(shipmentNumber: number, taskName: string): Promise<EntityModelOfShipment> {
     const requestParams = {
       shipmentNumber,
       taskName,

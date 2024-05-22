@@ -23,4 +23,4 @@ export interface LocationMapping {
 export interface dsCredentials {
   apiKey: string;
   api: string;
-};
+}

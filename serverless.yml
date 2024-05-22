@@ -6,7 +6,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   environment:
-    DYNAMODB_TABLE: ${self:service}-${sls:stage}
+    DYNAMODB_CONFIG_TABLE: ${self:service}-config-${sls:stage}
     EVENTBRIDGE_BUS_NAME: ${self:service}-${sls:stage}
     CONTENT_BUCKET_NAME: ${self:service}-${sls:stage}-website-bucket
     KIBO_HOME_HOST: ${env:KIBO_HOME_HOST}
@@ -26,7 +26,7 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-          Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+          Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_CONFIG_TABLE}"
         - Effect: Allow
           Action:
             - events:PutEvents
@@ -35,27 +35,32 @@ custom:
   client:
     bucketName: ${self:provider.environment.CONTENT_BUCKET_NAME}
     distributionFolder: config-ui/build
+  esbuild:
+    bundle: true
+    sourcemap: true
+    target: es2018  
+    keepNames: true  # Add this line
 functions:
   app:
-    handler: build/express/index.handler
+    handler: src/express/index.handler
     events: 
       - http:
           method: ANY   
           path: /{proxy+}
   dsWebhook:
-    handler: build/producers/deliverySolutions.handler
+    handler: src/producers/deliverySolutions.handler
     events:
       - http:
           path: /webhooks/ds
           method: post
   kiboWebhook:
-    handler: build/producers/kibo.handler
+    handler: src/producers/kibo.handler
     events:
       - http:
           path: /webhooks/kibo
           method: post
   dsEventHandler:
-    handler: build/consumers/deliverySolutions.handler
+    handler: src/consumers/deliverySolutions.handler
     events:
       - eventBridge:
           eventBus: ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
@@ -63,7 +68,7 @@ functions:
             source:
               - ds
   kiboEventHandler:
-    handler: build/consumers/kibo.handler
+    handler: src/consumers/kibo.handler
     events:
       - eventBridge:
           eventBus:  ${self:provider.environment.EVENTBRIDGE_BUS_NAME}
@@ -72,7 +77,7 @@ functions:
               - kibo  
 resources:
   Resources:
-    TodosDynamoDbTable:
+    DynamoDbConfigTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
@@ -85,7 +90,7 @@ resources:
             AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.DYNAMODB_CONFIG_TABLE}
 package:
   individually: true
   exclude:
@@ -93,11 +98,16 @@ package:
 # plugins:
 #   - serverless-esbuild
 plugins:
+  #- serverless-plugin-typescript
+  #- serverless-scriptable-plugin
+  - serverless-esbuild
   - serverless-lift
   - serverless-dynamodb-local
   - serverless-offline
   - serverless-finch
-  - serverless-webpack
+  #- serverless-webpack
+
+
 
 
   

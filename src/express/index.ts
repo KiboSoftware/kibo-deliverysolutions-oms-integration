@@ -1,6 +1,6 @@
 
-import * as express from "express";
-import * as serverless from "serverless-http";
+import express from "express";
+import serverless from "serverless-http";
 import { expressjwt, Request as JWTRequest } from "express-jwt";
 import { KiboAppConfigurationService } from "../services/kiboAppConfigurationService";
 import { JwtService } from "../services/jwtService";
@@ -10,7 +10,7 @@ import { StaticHandler } from "./staticHandler";
 import { S3 } from "aws-sdk";
 import { TenantConfigService } from "../services/tenantConfigurationService";
 import { ConfigApiHandler } from "./configApiHandler";
-import * as cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const secret = KiboAppConfigurationService.getCurrent().clientSecret;

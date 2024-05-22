@@ -23,7 +23,7 @@ export const handler = async (
       ],
     })
     .promise();
-  console.log("kiboWebhook", busName, resp);
+  console.log("kiboWebhook.", busName, resp);
 
   return {
     statusCode: 200,

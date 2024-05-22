@@ -1,103 +1,118 @@
 import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillment/models";
-import { DeliverySolutionsOrder, TimeWindow } from "../types/deliverySolutions";
+import { DeliverySolutionsOrder, KiboDataBlock, TimeWindow } from "../types/deliverySolutions";
 import { TenantConfiguration } from "../types/tenantConfiguration";
-import parsePhoneNumber, { CountryCode } from 'libphonenumber-js'
+import parsePhoneNumber, { CountryCode, isSupportedCountry } from "libphonenumber-js";
+import { Order } from "@kibocommerce/rest-sdk/clients/Commerce";
 
 function getImageUrl(url: string | null): string {
   if (!url) {
-    return '';
+    return "";
   }
 
-  if (url.startsWith('//')) {
-    return 'https:' + url;
+  if (url.startsWith("//")) {
+    return "https:" + url;
   }
   return url;
 }
-function mapPackages(  {
-  kiboShipment,
-  tenantConfig
-  
-}: {
-  kiboShipment: EntityModelOfShipment,
-  tenantConfig: TenantConfiguration
- 
-}){
+
+function toInternationalPhoneNumber({phoneNumber, countryCode}:{phoneNumber: string, countryCode: string}): string {
+  if (isSupportedCountry(countryCode) && phoneNumber) {
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber, countryCode);
+    return parsedPhoneNumber?.formatInternational() || "";
+  } else {
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber, "US");
+    return parsedPhoneNumber?.formatInternational() || "";
+  }
+}
+
+function mapPackages({ kiboShipment, tenantConfig, kiboDataBlock }: { kiboShipment: EntityModelOfShipment; tenantConfig: TenantConfiguration; kiboDataBlock: KiboDataBlock }) {
+  if (kiboDataBlock.packages) {
+    return kiboDataBlock.packages;
+  }
+  const totalWeight = kiboShipment.items?.reduce((total, item) => total + item.weight || 1, 0) || 1;
   return [
-      {
-         "name":"custom",
-         "size":{
-            "length":15,
-            "width":25,
-            "height":25
-         },
-         "weight":10,
-         "items":1,
-         "temperatureControl":"none",
-         "description":"Small",
-         "quantity":1
-      }
-   ];
+    {
+      name: "custom",
+      size: {
+        length: 15,
+        width: 25,
+        height: 25,
+      },
+      weight: totalWeight,
+      items: 1,
+      temperatureControl: "none",
+      quantity: 1,
+    },
+  ];
 }
-function mapTimeWindows( {data, attributes}:{data?:any, attributes?: any}){
-  if(data?.confirmedWindow){
-    return  JSON.parse(data.confirmedWindow);
+function mapKiboDataBlock({ data, attributes }: { data?: any; attributes?: any }): KiboDataBlock {
+  if (data?.KiboDataBlock) {
+    return JSON.parse(data.KiboDataBlock) as KiboDataBlock;
   }
-  return {};
-}
-function toInternationalPhoneNubmer ({rawPhone, countryCodeStr}:{rawPhone:string, countryCodeStr?:string}){
 
-  const countryCode = ((countryCodeStr?.toUpperCase()) || 'US' ) as CountryCode
-  const phoneNumber = parsePhoneNumber(rawPhone, countryCode);
-  return phoneNumber?.formatInternational();
+  if (data.dropoffTime) {
+    return data as KiboDataBlock;
+  }
 
+  return;
 }
 
-function mapNotifications( {data}:{data?:any}){   
-  
+function mapNotifications(kiboDataBlock: KiboDataBlock): { notifySms?: boolean; notifyEmail?: boolean } {
   return {
-    notifySms: data?.delviery?.notifySms || true,
-    notifyEmail: data?.delviery?.notifyEmail || true
-  }
+    notifySms: kiboDataBlock?.deliveryContact ? kiboDataBlock?.deliveryContact?.notifySms : true,
+    notifyEmail: kiboDataBlock?.deliveryContact ? kiboDataBlock?.deliveryContact?.notifyEmail : true,
+  };
 }
 
-export function mapKiboShipmentToDsOrder(
-  {
-    kiboShipment,
-    tenantConfig
-    
-  }: {
-    kiboShipment: EntityModelOfShipment,
-    tenantConfig: TenantConfiguration
-   
+export function mapTimeWindows(kiboDataBlock: KiboDataBlock): { pickupTime: TimeWindow; dropoffTime: TimeWindow } {
+  const now = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const ret = {
+    pickupTime: kiboDataBlock.pickupTime,
+    dropoffTime: kiboDataBlock.dropoffTime,
+  };
+
+  if (!ret.pickupTime?.startsAt) {
+    ret.pickupTime = {};
+    ret.pickupTime = {
+      startsAt: now.getTime(),
+    };
   }
- 
-): DeliverySolutionsOrder {
-  
+  if (!ret.dropoffTime?.endsAt) {
+    ret.dropoffTime = {
+      endsAt: tomorrow.getTime(),
+    };
+  }
+  return ret;
+}
+export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig }: { kiboShipment: EntityModelOfShipment; tenantConfig: TenantConfiguration; kiboOrder: Order }): DeliverySolutionsOrder {
   const deliveryContact = kiboShipment.destination?.destinationContact;
 
   let storeExternalId = kiboShipment.fulfillmentLocationCode;
   if (tenantConfig.locationMapping) {
-    storeExternalId =
-      tenantConfig.locationMapping.find(
-        (x) => x.kibo === kiboShipment.fulfillmentLocationCode
-      )?.ds || kiboShipment.fulfillmentLocationCode;
+    storeExternalId = tenantConfig.locationMapping.find((x) => x.kibo === kiboShipment.fulfillmentLocationCode)?.ds || kiboShipment.fulfillmentLocationCode;
   }
-
-  const timeWindows = mapTimeWindows(kiboShipment);
-  const notifySettings = mapNotifications (kiboShipment);
-  const packages = mapPackages({tenantConfig,kiboShipment});
+  const dataBlock = mapKiboDataBlock(kiboShipment) || mapKiboDataBlock(kiboOrder.fulfillmentInfo) || mapKiboDataBlock(kiboOrder);
+  if (!dataBlock) {
+    throw new Error("No data block found");
+  }
+  const timeWindows = mapTimeWindows(dataBlock);
+  const notifySettings = mapNotifications(dataBlock);
+  const packages = mapPackages({ tenantConfig, kiboShipment, kiboDataBlock: dataBlock });
   return {
     pickupTime: timeWindows?.pickupTime,
     dropoffTime: timeWindows?.dropoffTime,
+    tips: dataBlock.tips || 0,
     deliveryContact: {
-      name:
-        deliveryContact?.firstName + " " + deliveryContact?.lastNameOrSurname,
-      phone: toInternationalPhoneNubmer({rawPhone:deliveryContact?.phoneNumbers?.mobile ||
-        deliveryContact?.phoneNumbers?.home ||
-        deliveryContact?.phoneNumbers?.work ,countryCodeStr: deliveryContact?.address?.countryCode}),
+      name: deliveryContact?.firstName + " " + deliveryContact?.lastNameOrSurname,
+      phone: toInternationalPhoneNumber({
+        phoneNumber: deliveryContact?.phoneNumbers?.mobile || deliveryContact?.phoneNumbers?.home || deliveryContact?.phoneNumbers?.work,
+        countryCode: deliveryContact?.address?.countryCode?.toUpperCase() ,
+      }),
       email: deliveryContact?.email,
       notifySms: notifySettings?.notifySms,
-      notifyEmail: notifySettings?.notifyEmail
+      notifyEmail: notifySettings?.notifyEmail,
     },
     deliveryAddress: {
       street: deliveryContact?.address?.address1 || "",
@@ -112,19 +127,21 @@ export function mapKiboShipmentToDsOrder(
     // },
     type: "delivery",
     storeExternalId: storeExternalId,
-    orderExternalId: 'kibo_'+ kiboShipment.shipmentNumber?.toString() ,
+    orderExternalId: "kibo_" + kiboShipment.shipmentNumber?.toString(),
     orderValue: kiboShipment.total || 0,
-    tips: 0,
-    packages:packages,
+    packages: packages,
     itemList:
-      kiboShipment.items?.map((item) => ({
+      kiboShipment.items
+        ?.filter((item)=>{
+          item.goodsType != FulfillmentAPIProductionProfileItemGoodsTypeEnum.Service
+        }).map((item) => ({
         quantity: item.quantity || 0,
         size: {
           height: (item as any).height || 1,
           width: (item as any).width || 1,
           length: (item as any).length || 1,
         },
-        image: getImageUrl(item.imageUrl ),
+        image: getImageUrl(item.imageUrl),
         sku: item.productCode || "",
         weight: item.weight || 1,
         price: item.actualPrice || 0,
@@ -136,4 +153,3 @@ export function mapKiboShipmentToDsOrder(
     isPickup: false,
   };
 }
-

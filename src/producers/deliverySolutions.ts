@@ -8,7 +8,7 @@ export const handler = async (event: AWSLambda.APIGatewayEvent): Promise<AWSLamb
     const body = JSON.parse(event.body || '');
     const busName = process.env.EVENTBRIDGE_BUS_NAME || 'default';
     const topic = body.event || 'unknown';
-    console.log('dsWebhook', topic,  body, headers);
+    console.log('dsWebhook.', topic,  body, headers);
     await eventBridge.putEvents({
         Entries: [
             {

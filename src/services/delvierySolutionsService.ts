@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { DeliverySolutionsOrder } from "../types/deliverySolutions";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 
@@ -31,10 +31,17 @@ export class DeliverySolutionsService {
       tenantId: this.tenantConfiguration.dsTenant,
       "x-api-key": this.tenantConfiguration.dsCredentials.apiKey,
     };
-
-    const response = await axios.post(url, order, { headers });
-
-    return response.data as DeliverySolutionsOrder;
+    try{
+      const response = await axios.post(url, order, { headers });
+      return response.data as DeliverySolutionsOrder;
+    }
+    catch (error) {
+      if ((error as AxiosError).response && (error as AxiosError).response.status === 400 && (error as AxiosError).response.headers['content-type'].includes('application/json')) {
+        throw new Error(`Request body: ${JSON.stringify(order)}, Response body: ${JSON.stringify((error as AxiosError).response.data)}`);
+      }
+      throw error;
+    }
+    
   }
 
   async cancelOrder(

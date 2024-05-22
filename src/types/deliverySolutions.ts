@@ -145,3 +145,15 @@ export interface DeliverySolutionsOrder {
     geofences?: any[];
     exceptionDetails?: null | any;
 }
+
+
+
+export interface KiboDataBlock{
+    packages?: any[];
+    deliveryContact?: Contact;
+    pickupTime?: TimeWindow ;
+    dropoffTime?: TimeWindow;
+    pickupInstructions?: string;
+    deliveryInstructions?: string;
+    tips?: number;
+  }

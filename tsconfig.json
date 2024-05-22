@@ -1,12 +1,18 @@
 
 {
-    "compilerOptions": {
-      "target": "es6",
-      "module": "commonjs",
-      "strict": true,
-      "rootDir": "src",
-      "outDir": "build",
-      "sourceMap": true,
-      "strictNullChecks":false
-    }
+  "compilerOptions": {
+    "target": "es6",
+    "module": "node16",
+    "strict": true,
+    "moduleResolution": "Node16",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "src",
+    "outDir": "build",
+    "declaration": true,
+    "sourceMap": true,
+    "strictNullChecks":false,
+    "resolveJsonModule": true,
+    "noImplicitAny": false
   }
+}
