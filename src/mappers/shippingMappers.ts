@@ -46,6 +46,10 @@ function mapPackages({ kiboShipment, tenantConfig, kiboDataBlock }: { kiboShipme
   ];
 }
 function mapKiboDataBlock(entity:any): KiboDataBlock {
+  if (entity?.data?.ds) {
+    return entity?.data?.ds as KiboDataBlock;
+  }
+
   if (entity?.data?.KiboDataBlock) {
     return JSON.parse(entity?.data.KiboDataBlock) as KiboDataBlock;
   }
