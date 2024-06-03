@@ -4,6 +4,8 @@ import { KiboApiContext } from "../types/kiboContext";
 import * as runtime from "@kibocommerce/rest-sdk/client-runtime";
 
 import { Configuration } from "@kibocommerce/rest-sdk";
+import { ProductAttributesApi , ProductTypesApi } from "@kibocommerce/rest-sdk/clients/CatalogAdministration";
+import { TenantsApi  } from "@kibocommerce/rest-sdk/clients/Tenant";
 
 export class KiboInstalledAppSettingsApi extends runtime.BaseAPI {
   constructor(configuration: Configuration) {
@@ -60,7 +62,11 @@ export class KiboInstalledAppSettingsApi extends runtime.BaseAPI {
   }
 }
 export class KiboApplicationService {
+ 
   client: KiboInstalledAppSettingsApi;
+  productAttributesApi: ProductAttributesApi;
+  productTypesApi: ProductTypesApi;
+  tenantsApi: TenantsApi;
 
   constructor({    
     apiContext,
@@ -80,6 +86,9 @@ export class KiboApplicationService {
       authHost: appConfig.homeHost,
     });
     this.client = new KiboInstalledAppSettingsApi(configuration);
+    this.tenantsApi = new TenantsApi ( configuration)
+    this.productAttributesApi = new ProductAttributesApi(configuration);
+    this.productTypesApi = new ProductTypesApi(configuration);
   }
 
   async getSettings(): Promise<KiboInstalledAppSettings> {

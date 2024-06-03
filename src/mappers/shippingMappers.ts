@@ -2,7 +2,7 @@ import { EntityModelOfShipment, FulfillmentAPIProductionProfileItemGoodsTypeEnum
 import { DeliverySolutionsOrder, KiboDataBlock, TimeWindow } from "../types/deliverySolutions";
 import { TenantConfiguration } from "../types/tenantConfiguration";
 import parsePhoneNumber, { isSupportedCountry } from "libphonenumber-js";
-import { Order } from "@kibocommerce/rest-sdk/clients/Commerce";
+import { CommerceRuntimeProductProperty, Order } from "@kibocommerce/rest-sdk/clients/Commerce";
 
 function getImageUrl(url: string | null): string {
   if (!url) {
@@ -90,6 +90,37 @@ export function mapTimeWindows(kiboDataBlock: KiboDataBlock): { pickupTime: Time
   }
   return ret;
 }
+interface OrderItemFlags {
+  isSpirit?: boolean;
+  isBeerOrWine?: boolean;  
+  isTobacco?: boolean;
+  isFragile?: boolean;
+  isRx?: boolean;
+  hasPerishableItems?: boolean;
+  hasRefrigeratedItems?: boolean;
+}
+function mapOrderItemFlags(kiboShipment: EntityModelOfShipment, kiboOrder: Order): OrderItemFlags {
+  const flags :OrderItemFlags = {};
+  const dsItemTypeAttribute = 'dsItemType';
+  if (kiboShipment.items) {
+    kiboShipment.items.forEach((item) => {
+      flags.isSpirit = flags.isSpirit || getPropertyValue( { attributeCode:dsItemTypeAttribute, originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} ) === 'Spirit';
+      flags.isBeerOrWine = flags.isBeerOrWine || getPropertyValue( { attributeCode:dsItemTypeAttribute, originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} ) === 'BeerOrWine';
+      flags.isTobacco = flags.isTobacco || getPropertyValue( { attributeCode:dsItemTypeAttribute, originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} ) === 'Tobacco';
+      flags.isRx = flags.isRx || getPropertyValue( { attributeCode:dsItemTypeAttribute, originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} ) === 'Rx';
+      flags.isFragile = flags.isFragile || getPropertyValue( { attributeCode:'dsFragile', originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} );
+      flags.hasPerishableItems = flags.hasPerishableItems || getPropertyValue( { attributeCode:'dsPerishable', originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} );
+      flags.hasRefrigeratedItems = flags.hasRefrigeratedItems || getPropertyValue( { attributeCode:'dsRefrigerated', originalOrderItemId: item.originalOrderItemId, kiboOrder: kiboOrder} );
+    });
+  }
+ 
+  return flags;
+
+}
+function getPropertyValue ( { attributeCode , originalOrderItemId, kiboOrder }: { attributeCode: string; originalOrderItemId: string; kiboOrder: Order }) : any {
+  const item = kiboOrder.items?.find((item) => item.id === originalOrderItemId);
+  return item?.product.properties?.find((attr) => attr?.attributeFQN?.split('~')[1].toLocaleLowerCase() === attributeCode.toLocaleLowerCase())?.values?.[0]?.value
+}
 export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig }: { kiboShipment: EntityModelOfShipment; tenantConfig: TenantConfiguration; kiboOrder: Order }): DeliverySolutionsOrder {
   const deliveryContact = kiboShipment.destination?.destinationContact;
 
@@ -101,10 +132,12 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
   if (!dataBlock) {
     throw new Error("No data block found");
   }
+  const orderItemFlags = mapOrderItemFlags(kiboShipment,kiboOrder);
   const timeWindows = mapTimeWindows(dataBlock);
   const notifySettings = mapNotifications(dataBlock);
   const packages = mapPackages({ tenantConfig, kiboShipment, kiboDataBlock: dataBlock });
   return {
+    ...orderItemFlags,
     pickupTime: timeWindows?.pickupTime,
     dropoffTime: timeWindows?.dropoffTime,
     tips: dataBlock.tips || 0,
@@ -126,9 +159,6 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
       zipcode: deliveryContact?.address?.postalOrZipCode || "",
       country: deliveryContact?.address?.countryCode || "",
     },
-    // dispatch: {
-    //   type: "manual",
-    // },
     type: "delivery",
     storeExternalId: storeExternalId,
     orderExternalId: "kibo_" + kiboShipment.shipmentNumber?.toString(),
@@ -150,7 +180,7 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
         weight: item.weight || 1,
         price: item.actualPrice || 0,
         sale_price: item.actualPrice || 0,
-        title: item.name || "",
+        title: item.name || ""  
       })) || [],
     isEstimate: false,
     tenantId: tenantConfig.dsTenant,

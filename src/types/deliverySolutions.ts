@@ -10,6 +10,7 @@ export interface Address {
     longitude?: number;
 }
 
+
 export interface Contact {
     name?: string;
     phone?: string;
