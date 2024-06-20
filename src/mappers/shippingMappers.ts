@@ -136,6 +136,9 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
   const timeWindows = mapTimeWindows(dataBlock);
   const notifySettings = mapNotifications(dataBlock);
   const packages = mapPackages({ tenantConfig, kiboShipment, kiboDataBlock: dataBlock });
+  const deliveryServiceItem = kiboShipment.items?.find(
+    (item) => item.goodsType == FulfillmentAPIProductionProfileItemGoodsTypeEnum.Service
+  );
   return {
     ...orderItemFlags,
     pickupTime: timeWindows?.pickupTime,
@@ -162,7 +165,7 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
     type: "delivery",
     storeExternalId: storeExternalId,
     orderExternalId: "kibo_" + kiboShipment.shipmentNumber?.toString(),
-    orderValue: kiboShipment.total || 0,
+    orderValue: kiboShipment.total - deliveryServiceItem?.actualPrice || 0,
     packages: packages,
     itemList:
       kiboShipment.items
