@@ -37,8 +37,9 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
         break;
     }
   } catch (err) {
-    console.log("Error processing event", err);
-    return;
+    console.error(detail);
+    console.error("Error processing event", err);
+    throw err;
   }
 };
 export default handler;

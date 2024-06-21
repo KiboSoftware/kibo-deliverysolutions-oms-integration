@@ -14,9 +14,7 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
     console.error("No tenantId found in headers");
     return;
   }
-  const tenantConfig = await new TenantConfigService().getConfigByKiboTenant(
-    apiContext.tenantId
-  );
+  const tenantConfig = await new TenantConfigService().getConfigByKiboTenant(apiContext.tenantId);
 
   console.log(event, event.detail.body);
   if (!tenantConfig) {
@@ -27,18 +25,12 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
   const eventDomain = eventType.split(".")[0];
 
   if (eventDomain == "application") {
-    try {
-      return await new ApplicationEventProcessor({
-        tenantConfig,
-        appConfig,
-        apiContext,
-      }).processEvent(event.detail);
-    } catch (e) {
-      console.error("Error processing application event", e);
-    }
+    return await new ApplicationEventProcessor({
+      tenantConfig,
+      appConfig,
+      apiContext,
+    }).processEvent(event.detail);
   }
-
- 
 
   if (event["detail-type"] != "shipment.workflowstatechanged") {
     console.log("Not a shipment.workflowstatechanged event");
@@ -49,9 +41,7 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
     return;
   }
 
-  const newState = extendedProperties.find(
-    (prop: { key: string }) => prop.key === "newState"
-  )?.value;
+  const newState = extendedProperties.find((prop: { key: string }) => prop.key === "newState")?.value;
 
   if (newState) {
     console.log(newState);
@@ -93,7 +83,9 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
         return;
     }
   } catch (e) {
+    console.error (event.detail)
     console.error("Error creating order.", e);
+    throw e;
   }
 };
 
