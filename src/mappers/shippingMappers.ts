@@ -162,6 +162,7 @@ export function mapKiboShipmentToDsOrder({ kiboShipment, kiboOrder, tenantConfig
       zipcode: deliveryContact?.address?.postalOrZipCode || "",
       country: deliveryContact?.address?.countryCode || "",
     },
+    deliveryInstructions: dataBlock?.deliveryInstructions || "",
     type: "delivery",
     storeExternalId: storeExternalId,
     orderExternalId: "kibo_" + kiboShipment.shipmentNumber?.toString(),
