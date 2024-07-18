@@ -127,13 +127,17 @@ export class DeliverySolutionsOrderSync {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
     return await this.kiboShipmentService.cancel(shipmentId);
   }
+  async blockKiboOrderCancel(dsOrder: DeliverySolutionsOrder): Promise<any> {
+    const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
+    return await this.kiboShipmentService.markImutable(shipmentId, { blockedActions: ["cancel"], reason: "DS Order Dispatches. Marked shipment as un-cancelable" });
+  }
   async markKiboShipmentDelivered(dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
     return await this.kiboShipmentService.execute(shipmentId, "Provide to Customer");
   }
   async logEvent(event: string, dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
-    return await this.kiboShipmentService.appendLog(shipmentId, event);
+    return await this.kiboShipmentService.addNote(shipmentId, 'Delviery Soutions State Chage: ' +  event);
   }
 
   async createOrder({ shipment, order }: { shipment: EntityModelOfShipment; order: Order }): Promise<DeliverySolutionsOrder> {

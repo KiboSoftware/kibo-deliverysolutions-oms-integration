@@ -1,11 +1,11 @@
 import { Configuration } from "@kibocommerce/rest-sdk";
 import { EntityModelOfShipment, ShipmentApi, ShipmentNotesApi, ShipmentDataApi, shipmentNotesApiParams } from "@kibocommerce/rest-sdk/clients/Fulfillment";
-import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
 import { KiboAppConfiguration } from "./kiboAppConfigurationService";
+import * as runtime from "@kibocommerce/rest-sdk/client-runtime";
 
 export class KiboShipmentService {
-  shipmentApi: ShipmentApi;
+  shipmentApi: ShipmentApi2;
   shipmentNotesApi: ShipmentNotesApi;
   shipmentDataApi: ShipmentDataApi;
 
@@ -20,7 +20,7 @@ export class KiboShipmentService {
       clientId: appConfig.clientId,
       authHost: appConfig.homeHost,
     });
-    this.shipmentApi = new ShipmentApi(configuration);
+    this.shipmentApi = new ShipmentApi2(configuration);
     this.shipmentNotesApi = new ShipmentNotesApi(configuration);
     this.shipmentDataApi = new ShipmentDataApi(configuration);
   }
@@ -35,7 +35,7 @@ export class KiboShipmentService {
         noteText,
       },
     } as shipmentNotesApiParams.NewShipmentNoteRequest;
-    const result = await this.shipmentNotesApi.newShipmentNote(newNoteRequest);
+    const result =await this.shipmentNotesApi.newShipmentNote(newNoteRequest);
     return result;
   }
 
@@ -71,7 +71,14 @@ export class KiboShipmentService {
     };
     return await this.shipmentApi.customerCareShipment(requestParams);
   }
+  async markImutable (shipmentNumber:number, body:{ blockedActions: string[],reason :string } ):Promise<EntityModelOfShipment> {
+    
+    return await this.shipmentApi.makeImMutable({
+      shipmentNumber: shipmentNumber,
+      body: body
+    });
 
+  }
   async execute(shipmentNumber: number, taskName: string): Promise<EntityModelOfShipment> {
     const requestParams = {
       shipmentNumber,
@@ -98,5 +105,60 @@ export class KiboShipmentService {
     //   updateFields: ["shopperNotes.deliveryInstructions"],
     //   shipment: shipmentPatch as Shipment,
     // });
+  }
+}
+
+
+export class ShipmentApi2 extends ShipmentApi {
+  constructor(configuration: Configuration) {
+    super(configuration);    
+  }
+
+  async makeMutable(
+    requestParameters: {shipmentNumber:number, body:{ reason :string }}, initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<EntityModelOfShipment> {
+    const queryParameters: any = {};
+   
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    await this.addAuthorizationHeaders(headerParameters);
+    headerParameters['Content-Type'] = 'application/json';
+    const response = await this.request(
+      {
+        path: `/commerce/shipments/${requestParameters.shipmentNumber}/mutable`,
+        method: "PUT",
+        body:requestParameters.body,
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    const reps2 =  new runtime.JSONApiResponse(response);
+    return await reps2.value();
+  }
+
+  async makeImMutable(
+    requestParameters: {shipmentNumber:number, body:{ blockedActions: string[],reason :string }}, initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<EntityModelOfShipment> {
+    const queryParameters: any = {};
+   
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    await this.addAuthorizationHeaders(headerParameters);
+    headerParameters['Content-Type'] = 'application/json';
+    const response = await this.request(
+      {
+        path: `/commerce/shipments/${requestParameters.shipmentNumber}/immutable`,
+        method: "PUT",
+        body:requestParameters.body,
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    const reps2 =  new runtime.JSONApiResponse(response);
+    return await reps2.value();
   }
 }

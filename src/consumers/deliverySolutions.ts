@@ -21,6 +21,13 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
     apiContext,
     appConfig,
   });
+  try{
+    await deliverySolutionsOrderSync.logEvent ( event["detail-type"], event.detail);
+  }
+  catch (err) {
+      console.error(detail);
+      console.error("Error processing event", err);
+  }
   try {
     switch (event["detail-type"]) {
       case "ORDER_CANCELLED":
@@ -31,9 +38,12 @@ export const handler = async (event: EventBridgeEvent<string, any>) => {
           event.detail
         );
         break;
-      default:
-        await deliverySolutionsOrderSync.logEvent ( event["detail-type"], event.detail);
-        console.log("Unknown event types.", event["detail-type"]);
+        case "ORDER_DISPATCHED":
+          await deliverySolutionsOrderSync.blockKiboOrderCancel(
+            event.detail
+          );
+          break;
+      default:        
         break;
     }
   } catch (err) {
