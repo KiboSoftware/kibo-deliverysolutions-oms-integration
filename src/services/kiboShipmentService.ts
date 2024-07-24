@@ -79,6 +79,12 @@ export class KiboShipmentService {
     });
 
   }
+  async markMutable (shipmentNumber:number, body:{ blockedActions?: string[], reason :string } ):Promise<EntityModelOfShipment> {
+    return await this.shipmentApi.makeMutable({
+      shipmentNumber: shipmentNumber,
+      body: body
+    });
+  }
   async execute(shipmentNumber: number, taskName: string): Promise<EntityModelOfShipment> {
     const requestParams = {
       shipmentNumber,

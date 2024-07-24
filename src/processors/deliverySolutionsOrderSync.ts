@@ -4,7 +4,7 @@ import { TenantConfiguration } from "../types/tenantConfiguration";
 import { KiboApiContext } from "../types/kiboContext";
 import { DeliverySolutionsOrder } from "../types/deliverySolutions";
 import { mapKiboShipmentToDsOrder } from "../mappers/shippingMappers";
-import { EntityModelOfShipment } from "@kibocommerce/rest-sdk/clients/Fulfillment";
+import { EntityModelOfShipment, EntityModelOfShipmentShipmentStatusEnum } from "@kibocommerce/rest-sdk/clients/Fulfillment";
 import { Order } from "@kibocommerce/rest-sdk/clients/Commerce";
 import { KiboCommerceService } from "../services/kiboCommerceService";
 
@@ -125,11 +125,19 @@ export class DeliverySolutionsOrderSync {
 
   async cancelKiboShipment(dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
+    const shipment = await this.kiboShipmentService.getShipmentById(shipmentId);
+    if (shipment?.shipmentStatus == EntityModelOfShipmentShipmentStatusEnum.Canceled) {
+      return;
+    }
+    if ((shipment as any).isImmutable){
+      await this.kiboShipmentService.markMutable(shipmentId, {  reason: "DS Order Canceled. Marked shipment as mutable" });
+    }
+    
     return await this.kiboShipmentService.cancel(shipmentId);
   }
   async blockKiboOrderCancel(dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
-    return await this.kiboShipmentService.markImutable(shipmentId, { blockedActions: ["cancel"], reason: "DS Order Dispatches. Marked shipment as un-cancelable" });
+    return await this.kiboShipmentService.markImutable(shipmentId, { blockedActions: ["cancel"], reason: "DS Order Dispatched.  Mark Shipment as Imutable" });
   }
   async markKiboShipmentDelivered(dsOrder: DeliverySolutionsOrder): Promise<any> {
     const shipmentId = this.toKiboShipmentId(dsOrder.orderExternalId);
